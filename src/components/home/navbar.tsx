@@ -42,44 +42,20 @@ const Navbar = () => {
       <div className="md:px-20 px-7">
         <div className="flex justify-between items-center h-16">
           <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            Wu Dimsum
+            Kukubi
           </span>
 
-          <motion.div
-            className="md:flex md:space-x-8 text-gray-700 hidden"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
+          <div className="md:flex md:space-x-8 text-gray-700 hidden">
             {navItems.map((nav, index) => (
-              <motion.div
+              <Link
                 key={index}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.4,
-                  delay: 0.4 + index * 0.1,
-                }}
-                whileHover={{
-                  scale: 1.1,
-                  y: -2,
-                }}
-                whileTap={{ scale: 0.95 }}
+                className="hover:text-orange-600 transition-colors duration-200 relative group"
+                href={nav.href}
               >
-                <Link
-                  className="hover:text-orange-600 transition-colors duration-200 relative group"
-                  href={nav.href}
-                >
-                  {nav.title}
-                  <motion.div
-                    className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-600 to-red-600 group-hover:w-full transition-all duration-300"
-                    initial={{ width: 0 }}
-                    whileHover={{ width: "100%" }}
-                  />
-                </Link>
-              </motion.div>
+                {nav.title}
+              </Link>
             ))}
-          </motion.div>
+          </div>
 
           <motion.div
             className="flex space-x-6 items-center text-gray-700"

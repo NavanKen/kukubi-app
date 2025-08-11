@@ -13,7 +13,7 @@ const Button: React.FC<IButton> = ({
   ...props
 }) => {
   const baseClass =
-    "rounded-full font-semibold cursor-pointer transition-all hover:scale-105 duration-300 ease-in-out";
+    "rounded-lg font-semibold cursor-pointer transition-all hover:scale-105 duration-300 ease-in-out";
 
   const variants = {
     primary: "bg-gradient-to-r from-orange-500 to-red-500 px-6 py-2 text-white",
