@@ -6,7 +6,7 @@ import Button from "./ui/button";
 const Hero = () => {
   return (
     <>
-      <div className="flex items-center justify-center md:flex-row flex-col-reverse px-7 py-24 min-h-screen md:px-20 md:py-20 relative overflow-hidden">
+      <div className="flex items-center justify-center md:flex-row flex-col-reverse px-7 py-24 min-h-screen md:px-20 md:py-20 relative bg-gradient-to-b from-orange-200 via-red-100 to-transparent overflow-hidden">
         <div className="absolute top-0 left-0 w-96 h-96 bg-orange-100 rounded-full blur-xl" />
         <div className="absolute w-2/4 h-3/12 bottom-0 -right-10 md:w-[500px] md:h-[500px] bg-yellow-100 rounded-full blur-xl opacity-60" />
 
@@ -91,12 +91,6 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.4 }}
           whileHover={{ scale: 1.02 }}
         >
-          <div className="absolute -top-5 rotate-12 grid grid-cols-8 gap-2 opacity-10">
-            {Array.from({ length: 40 }).map((_, i) => (
-              <div key={i} className="w-2 h-2 bg-orange-400 rounded-full" />
-            ))}
-          </div>
-
           <motion.div
             className="absolute -bottom-4 -right-4 w-full h-full bg-yellow-300 rounded-2xl opacity-20"
             initial={{ opacity: 0, x: 20, y: 20 }}
