@@ -17,13 +17,13 @@ const Hero = () => {
         </div>
 
         <motion.div
-          className="flex flex-col md:gap-8 relative z-10 mt-10 max-w-3xl md:mt-0"
+          className="flex flex-col gap-4 md:gap-8 relative z-10 mt-10 max-w-3xl md:mt-0"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <motion.h1
-            className="md:text-7xl text-3xl font-bold"
+            className="md:text-6xl text-3xl font-extrabold"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -40,7 +40,7 @@ const Hero = () => {
           </motion.h1>
 
           <motion.p
-            className="md:text-2xl text- text-gray-600 max-w-2xl leading-relaxed"
+            className="md:text-2xl text-gray-600 max-w-2xl leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
