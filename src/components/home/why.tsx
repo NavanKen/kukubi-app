@@ -1,4 +1,13 @@
-import { CheckCircle, Clock, Send } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  Send,
+  Quote,
+  Star,
+  Heart,
+  Utensils,
+  ChefHat,
+} from "lucide-react";
 
 interface Feature {
   icon: React.ElementType;
@@ -27,29 +36,41 @@ const features: Feature[] = [
   },
 ];
 
-const About = () => {
+const WhyUs = () => {
   return (
     <>
-      <div className="min-h-screen bg-gray-50 relative">
-        <div
-          className="
-            absolute inset-0
-            bg-[linear-gradient(to_right,rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_1px,transparent_1px)]
-            bg-[size:80px_80px]
-            bg-[position:40px_40px]
-          "
-        />
-        <div className="absolute inset-0 shadow-inner pointer-events-none" />
-
-        <div className="relative z-10 px-6 md:px-20 py-24">
-          <div className="flex justify-center text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold max-w-2xl">
-              Kenapa harus beli di{" "}
-              <span className="text-orange-600">Kukubi</span> ?
-            </h1>
+      <div className="min-h-screen bg-white px-6 md:px-20 py-24">
+        <div className="relative overflow-hidden rounded-4xl bg-gradient-to-br from-orange-500 to-red-500 px-6 md:px-20 py-24">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <Quote className="absolute top-20 left-10 w-16 h-16 md:w-28 md:h-28 text-white/10 transform -rotate-12" />
+            <Quote className="absolute bottom-2 right-20 w-12 h-12 md:w-20 md:h-20 text-white/10 transform rotate-45" />
+            <Utensils className="absolute top-40 left-1/4 w-14 h-14 text-white/10 transform rotate-12" />
+            <Utensils className="absolute top-60 right-1/3 w-10 h-10 text-white/10 transform -rotate-45" />
+            <ChefHat className="absolute bottom-40 left-16 w-18 h-18 text-white/10 transform rotate-12" />
+            <Quote className="absolute bottom-60 right-16 w-20 h-20 text-white/10 transform rotate-45" />
+            <Star className="absolute bottom-20 left-1/3 w-8 h-8 text-white/10 transform -rotate-12" />
+            <Utensils className="absolute top-1/2 right-10 w-12 h-12 text-white/10 transform -rotate-12" />
+            <Utensils className="absolute top-1/3 left-1/2 w-16 h-16 text-white/10 transform rotate-12" />
+            <ChefHat className="absolute bottom-1/3 right-1/4 w-14 h-14 text-white/10 transform -rotate-45" />
+            <div className="md:hidden">
+              <Quote className="absolute top-16 right-8 w-8 h-8 text-white/10 transform rotate-12" />
+              <Star className="absolute bottom-16 left-8 w-6 h-6 text-white/10 transform -rotate-12" />
+              <Heart className="absolute top-1/2 left-4 w-10 h-10 text-white/10 transform rotate-45" />
+            </div>
           </div>
 
-          <div className="max-w-6xl mx-auto">
+          <div className="relative z-10 flex flex-col text-center items-center mb-16 text-white">
+            <h1 className="text-4xl md:text-5xl font-bold max-w-2xl">
+              Kenapa harus beli di <span className="">Kukubi</span> ?
+            </h1>
+            <p className="mt-4 text-lg text-gray-200 max-w-2xl">
+              Kami selalu menghadirkan dimsum segar dengan bahan pilihan, harga
+              terjangkau, dan pelayanan terbaik. Inilah alasan kenapa ribuan
+              pelanggan memilih Kukubi setiap harinya.
+            </p>
+          </div>
+
+          <div className="relative z-10 max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-5">
               {features.map((feature, index) => {
                 const Icon = feature.icon;
@@ -110,4 +131,4 @@ const About = () => {
   );
 };
 
-export default About;
+export default WhyUs;

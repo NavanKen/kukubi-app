@@ -6,39 +6,34 @@ import Button from "./ui/button";
 const Hero = () => {
   return (
     <>
-      <div className="flex items-center justify-center md:flex-row flex-col-reverse px-7 py-24 min-h-screen md:px-20 md:py-20 relative bg-gradient-to-b from-orange-200 via-red-100 to-transparent overflow-hidden">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-orange-100 rounded-full blur-xl" />
-        <div className="absolute w-2/4 h-3/12 bottom-0 -right-10 md:w-[500px] md:h-[500px] bg-yellow-100 rounded-full blur-xl opacity-60" />
-
-        <div className="absolute bottom-10 left-10 grid grid-cols-8 gap-2 opacity-10">
-          {Array.from({ length: 40 }).map((_, i) => (
-            <div key={i} className="w-2 h-2 bg-orange-400 rounded-full" />
-          ))}
-        </div>
-
+      <div className="flex items-center justify-center md:flex-row flex-col-reverse px-7 py-24 min-h-screen md:px-20 md:py-20 relative bg-white to-transparent overflow-hidden">
         <motion.div
           className="flex flex-col gap-4 md:gap-8 relative z-10 mt-10 max-w-3xl md:mt-0"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <motion.h1
-            className="md:text-6xl text-3xl font-extrabold"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            Dimsum Autentik{" "}
-            <motion.span
-              className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+          <div className="md:space-y-3">
+            <h1 className="hidden md:inline-flex bg-gradient-to-br from-orange-500 to-red-500 px-7 py-1 rounded-full text-gray-50 font-extralight">
+              Kukubi - Dimsum yang bikin ketagihan
+            </h1>
+            <motion.h1
+              className="md:text-6xl text-3xl font-extrabold"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Langsung Dari Dapur
-            </motion.span>
-          </motion.h1>
-
+              Dimsum Autentik{" "}
+              <motion.span
+                className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                Langsung Dari Dapur
+              </motion.span>
+            </motion.h1>
+          </div>
           <motion.p
             className="md:text-2xl text-gray-600 max-w-2xl leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
@@ -85,14 +80,14 @@ const Hero = () => {
         </motion.div>
 
         <motion.div
-          className="relative w-full md:max-w-lg max-w-md md:h-96 h-72 z-10 "
+          className="relative w-full md:max-w-lg max-w-md md:h-96 h-72 z-10"
           initial={{ opacity: 0, x: 50, scale: 0.9 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
           whileHover={{ scale: 1.02 }}
         >
           <motion.div
-            className="absolute -bottom-4 -right-4 w-full h-full bg-yellow-300 rounded-2xl opacity-20"
+            className="absolute -bottom-4 -right-4 w-full h-full bg-yellow-300 rounded-2xl opacity-20 "
             initial={{ opacity: 0, x: 20, y: 20 }}
             animate={{ opacity: 0.2, x: 0, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -104,8 +99,16 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.7 }}
           />
 
+          {/* <div className="absolute -bottom-6 -right-3 grid grid-cols-3 gap-2 opacity-70">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="w-2 h-2 bg-orange-400 rounded-full" />
+            ))}
+          </div> */}
+
+          <div className="hidden md:block absolute -top-12 -right-14 rounded-full h-40 w-40 border-8 opacity-70 border-orange-600"></div>
+
           <motion.div
-            className="absolute -bottom-2 -left-2 md:-left-7  bg-white rounded-lg py-2 px-4 z-50"
+            className="absolute -bottom-2 -left-2 md:-left-7 bg-white shadow-lg rounded-lg py-2 px-4 z-50"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
@@ -116,7 +119,7 @@ const Hero = () => {
               </div>
               <div>
                 <p className="font-semibold text-gray-900">Fresh Daily</p>
-                <p className="text-gray-500 text-sm">Dibuat setiap hari</p>
+                <p className="text-gray-500 text-sm">Dibuat Setiap hari</p>
               </div>
             </div>
           </motion.div>

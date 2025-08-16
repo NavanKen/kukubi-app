@@ -55,5 +55,3 @@ const CardProduk = () => {
     </>
   );
 };
-
-export default CardProduk;

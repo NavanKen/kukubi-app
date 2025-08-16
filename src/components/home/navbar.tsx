@@ -6,7 +6,7 @@ import { ShoppingCart, User } from "lucide-react";
 const Navbar = () => {
   const navItems = [
     {
-      title: "Home",
+      title: "Beranda",
       href: "/",
     },
     {
@@ -14,11 +14,11 @@ const Navbar = () => {
       href: "/",
     },
     {
-      title: "About",
+      title: "Tentang Kami",
       href: "/",
     },
     {
-      title: "Contact",
+      title: "Kontak",
       href: "/",
     },
   ];
