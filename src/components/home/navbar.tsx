@@ -1,101 +1,244 @@
 "use client";
-import { motion } from "motion/react";
+
+import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
-import { ShoppingCart, User } from "lucide-react";
+import {
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  Home,
+  LayoutGrid,
+  Info,
+  MessageCircle,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const navItems = [
     {
       title: "Beranda",
       href: "/",
+      icon: Home,
     },
     {
       title: "Menu",
-      href: "/",
+      href: "/menu",
+      icon: LayoutGrid,
     },
     {
       title: "Tentang Kami",
-      href: "/",
+      href: "/about",
+      icon: Info,
     },
     {
       title: "Kontak",
-      href: "/",
+      href: "/contact",
+      icon: MessageCircle,
     },
   ];
 
   const navIcon = [
     {
       icon: ShoppingCart,
+      label: "Cart",
     },
     {
       icon: User,
+      label: "Profile",
     },
   ];
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <motion.div
-      className="bg-white/90 backdrop-blur-md shadow-lg fixed w-full top-0 z-50"
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-    >
-      <div className="md:px-20 px-7">
-        <div className="flex justify-between items-center h-16">
-          <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            Kukubi
-          </span>
-
-          <div className="md:flex md:space-x-8 text-gray-700 hidden">
-            {navItems.map((nav, index) => (
-              <Link
-                key={index}
-                className="hover:text-orange-600 transition-colors duration-200 relative group"
-                href={nav.href}
-              >
-                {nav.title}
-              </Link>
-            ))}
-          </div>
-
-          <motion.div
-            className="flex space-x-6 items-center text-gray-700"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            {navIcon.map((item, index) => (
+    <>
+      <motion.div
+        className={`bg-white fixed w-full top-0 z-50 duration-300 ${
+          isScrolled
+            ? "bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-100"
+            : ""
+        }`}
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <div className="md:px-20 px-4">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
               <motion.button
-                className="cursor-pointer hover:text-orange-600 transition-all duration-200 ease-in-out relative"
-                key={index}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{
-                  duration: 0.4,
-                  delay: 0.6 + index * 0.1,
-                  type: "spring",
-                  stiffness: 200,
-                }}
-                whileHover={{
-                  scale: 1.2,
-                  rotate: 5,
-                }}
-                whileTap={{ scale: 0.9 }}
+                className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                onClick={toggleMobileMenu}
+                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.05 }}
               >
                 <motion.div
-                  className="absolute inset-0 rounded-full bg-orange-100 opacity-0 -z-10"
-                  whileHover={{
-                    opacity: 1,
-                    scale: 1.5,
-                  }}
-                  transition={{ duration: 0.2 }}
-                />
-                <item.icon size={20} />
+                  animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  {isMobileMenuOpen ? (
+                    <X size={24} className="text-gray-700" />
+                  ) : (
+                    <Menu size={24} className="text-gray-700" />
+                  )}
+                </motion.div>
               </motion.button>
-            ))}
-          </motion.div>
+
+              <motion.span
+                className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent"
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                Kukubi
+              </motion.span>
+            </div>
+
+            <div className="hidden md:flex md:space-x-8 text-gray-700">
+              {navItems.slice(0, 4).map((nav, index) => (
+                <motion.div key={index} className="relative group">
+                  <Link
+                    className="hover:text-orange-600 transition-colors duration-200 py-2 px-1 relative"
+                    href={nav.href}
+                  >
+                    {nav.title}
+                    <motion.div
+                      className="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 origin-left"
+                      initial={{ scaleX: 0 }}
+                      whileHover={{ scaleX: 1 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div
+              className="flex space-x-4 items-center text-gray-700"
+              initial={{ opacity: 0, x: 0 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              {navIcon.map((item, index) => (
+                <motion.button
+                  className="p-2 hover:bg-gray-100 rounded-lg hover:text-orange-600 transition-all duration-200 ease-in-out relative group"
+                  key={index}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  title={item.label}
+                >
+                  <item.icon size={20} />
+                  <motion.div
+                    className="absolute -inset-1 rounded-lg bg-orange-100 opacity-0 -z-10"
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                </motion.button>
+              ))}
+            </motion.div>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={toggleMobileMenu}
+            />
+
+            <motion.div
+              className="fixed top-0 left-0 h-full w-80 bg-white z-50 shadow-2xl md:hidden"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                duration: 0.4,
+              }}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+                  <motion.span
+                    className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    Kukubi
+                  </motion.span>
+                  <motion.button
+                    className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                    onClick={toggleMobileMenu}
+                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <motion.div
+                      animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      {isMobileMenuOpen ? (
+                        <X size={24} className="text-gray-700" />
+                      ) : (
+                        <Menu size={24} className="text-gray-700" />
+                      )}
+                    </motion.div>
+                  </motion.button>
+                </div>
+
+                <nav className="space-y-2">
+                  {navItems.map((nav, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * (index + 1), duration: 0.3 }}
+                    >
+                      <Link
+                        href={nav.href}
+                        className={`flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 group`}
+                        onClick={toggleMobileMenu}
+                      >
+                        <motion.div
+                          className={`p-2 rounded-lg`}
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <nav.icon size={20} />
+                        </motion.div>
+                        <span className="font-medium">{nav.title}</span>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </nav>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
