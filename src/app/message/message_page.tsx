@@ -7,6 +7,7 @@ import { ArrowLeft, Send, Bot, User, Phone, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { sendMessageToDify } from "@/lib/difyAi/difyAIClient";
 
 interface Message {
   id: string;
@@ -95,28 +96,32 @@ const MessagePage = () => {
     if (chatType === "ai") {
       setIsTyping(true);
 
-      setTimeout(() => {
+      try {
+        const data = await sendMessageToDify(newMessage);
+
+        const aiText =
+          data?.answer || "Maaf, saya tidak bisa merespons saat ini.";
+
         const aiResponse: Message = {
           id: (Date.now() + 1).toString(),
-          text: getAIResponse(newMessage),
+          text: aiText,
           sender: "contact",
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, aiResponse]);
+      } catch (error: unknown) {
+        console.log("error", error);
+        const errorMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          text: "Terjadi kesalahan saat menghubungkan ke AI.",
+          sender: "contact",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      } finally {
         setIsTyping(false);
-      }, 1500);
+      }
     }
-  };
-
-  const getAIResponse = (userMessage: string): string => {
-    const responses = [
-      "Terima kasih atas pertanyaan Anda! Tim kami akan segera membantu Anda.",
-      "Untuk informasi menu terbaru, Anda bisa mengunjungi halaman Menu kami.",
-      "Apakah ada yang spesifik yang ingin Anda tanyakan tentang produk Kukubi?",
-      "Saya akan menghubungkan Anda dengan tim yang tepat untuk pertanyaan ini.",
-      "Kukubi menyediakan dimsum fresh setiap hari dengan kualitas terjamin!",
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -127,8 +132,8 @@ const MessagePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
+    <div className="h-screen bg-gray-50 flex flex-col">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Link href="/contact">
@@ -183,7 +188,7 @@ const MessagePage = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 pt-20 space-y-4 min-h-0">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -236,7 +241,7 @@ const MessagePage = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-white border-t border-gray-200 p-4">
+      <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
         <div className="flex items-center space-x-2">
           <Input
             value={newMessage}
