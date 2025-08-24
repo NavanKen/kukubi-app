@@ -12,11 +12,13 @@ import {
   Info,
   MessageCircle,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,6 +61,7 @@ const Navbar = () => {
     {
       icon: User,
       label: "Profile",
+      href: "/auth/login",
     },
   ];
 
@@ -140,6 +143,7 @@ const Navbar = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => router.push("/auth/login")}
                   title={item.label}
                 >
                   <item.icon size={20} />

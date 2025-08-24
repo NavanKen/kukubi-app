@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import {
   Geist,
   Geist_Mono,
@@ -45,6 +46,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${plusJakartaSans.variable} antialiased`}
       >
         {children}
+        <Toaster position="top-right" richColors expand={false} />
       </body>
     </html>
   );
