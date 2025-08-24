@@ -64,4 +64,18 @@ export const getUser = async () => {
   };
 };
 
-export const logout = async () => {};
+export const logout = async () => {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    return {
+      status: null,
+      pesan: error?.message,
+    };
+  }
+
+  return {
+    status: true,
+    pesan: "Berhasil Keluar",
+  };
+};
