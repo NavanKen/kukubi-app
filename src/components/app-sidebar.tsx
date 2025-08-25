@@ -2,22 +2,23 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
+  LayoutDashboard,
+  ShoppingCart,
+  Boxes,
+  Package,
+  Tags,
+  Users,
+  CreditCard,
+  Truck,
+  Percent,
+  Receipt,
+  Wallet,
 } from "lucide-react";
-
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
+import { NavTransaction } from "@/components/nav-transaction";
 import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
+import { NavKeuangan } from "./nav-keuangan";
 import {
   Sidebar,
   SidebarContent,
@@ -25,132 +26,73 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { NavMasterData } from "./nav-master-data";
 
 const data = {
   user: {
     name: "shadcn",
     email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    avatar: "https://github.com/shadcn.png",
   },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
+
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
+      title: "Dashboard",
+      url: "/admin/dashboard",
+      icon: LayoutDashboard,
       isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
     },
   ],
-  projects: [
+  transactionMenu: [
     {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
+      name: "Orders",
+      url: "/orders",
+      icon: ShoppingCart,
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
+      name: "Pergerakan Stok",
+      url: "/stock-movements",
+      icon: Boxes,
+    },
+  ],
+
+  keuanganData: [
+    {
+      title: "Pengeluaran",
+      url: "/expenses",
+      icon: Receipt,
     },
     {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      title: "Laporan Penjualan",
+      url: "/reports/sales",
+      icon: Wallet,
+    },
+  ],
+  masterData: [
+    {
+      title: "Produk",
+      url: "/admin/products",
+      icon: Package,
+    },
+    {
+      title: "Kategori",
+      url: "/admin/categories",
+      icon: Tags,
+    },
+    {
+      title: "Pengguna",
+      url: "/admin/users",
+      icon: Users,
+    },
+    {
+      title: "Metode Pembayaran",
+      url: "/admin/payment-methods",
+      icon: CreditCard,
+    },
+    {
+      title: "Metode Pengiriman",
+      url: "/admin/shipping-methods",
+      icon: Truck,
     },
   ],
 };
@@ -159,11 +101,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavTransaction transactionMenu={data.transactionMenu} />
+        <NavKeuangan items={data.keuanganData} />
+        <NavMasterData items={data.masterData} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 
-export function NavMain({
+export function NavMasterData({
   items,
 }: {
   items: {
@@ -35,7 +35,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Beranda</SidebarGroupLabel>
+      <SidebarGroupLabel>Master Data</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) =>
           item.items ? (
