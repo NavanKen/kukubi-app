@@ -1,8 +1,9 @@
 "use client";
 
-// import { useState } from "react";
-import DashboardSidebar from "@/components/admin/ui/sidebar";
-import DashboardNavbar from "@/components/admin/ui/navbar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ModeToggle } from "@/components/mode-toogle";
 
 export default function AdminLayout({
   children,
@@ -11,13 +12,23 @@ export default function AdminLayout({
 }) {
   return (
     <>
-      <div className="max-w-screen-3xl 3xl:container flex">
-        <DashboardNavbar />
-        <DashboardSidebar />
-        <div className="h-screen w-full overflow-y-auto">
-          <div className="p-8">{children}</div>
-        </div>
-      </div>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <SidebarProvider>
+          <AppSidebar />
+          <main className="w-full h-screen p-4">
+            <div className="flex justify-between items-center mb-5">
+              <SidebarTrigger />
+              <ModeToggle />
+            </div>
+            {children}
+          </main>
+        </SidebarProvider>
+      </ThemeProvider>
     </>
   );
 }
