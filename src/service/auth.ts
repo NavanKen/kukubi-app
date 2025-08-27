@@ -1,5 +1,5 @@
 import supabase from "@/lib/supabase/client";
-import { ILogin, IRegister } from "@/types/auth.type";
+import { ILogin, IRegister, IUserResponse } from "@/types/auth.type";
 
 export const login = async (payload: ILogin) => {
   const { email, password } = payload;
@@ -48,19 +48,40 @@ export const register = async (payload: IRegister) => {
   };
 };
 
-export const getUser = async () => {
+export const getProfileUser = async (): Promise<IUserResponse> => {
   const { data, error } = await supabase.auth.getUser();
 
   if (error) {
     return {
-      status: "error",
+      status: null,
       pesan: error?.message,
     };
   }
 
+  const userId: string = data.user?.id || "";
+
+  const { data: UserProfile, error: userError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if (userError) {
+    return {
+      status: null,
+      pesan: userError?.message,
+    };
+  }
+
+  const authData = data.user;
+  const userProfileData = UserProfile;
+
   return {
-    status: "success",
-    data: data.user,
+    status: true,
+    data: {
+      auth: authData,
+      profile: userProfileData,
+    },
   };
 };
 
