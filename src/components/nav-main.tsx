@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { LucideIcon } from "lucide-react";
+import Link from "next/link";
 
 interface NavItem {
   title: string;
@@ -49,10 +50,10 @@ export function NavMain({ items }: NavMain) {
                         : "hover:bg-accent hover:text-accent-foreground"
                     }
                   >
-                    <a href={item.url} className="flex items-center gap-2">
+                    <Link href={item.url} className="flex items-center gap-2">
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );

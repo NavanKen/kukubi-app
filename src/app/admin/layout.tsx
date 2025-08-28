@@ -1,9 +1,8 @@
-"use client";
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toogle";
+import DashboardBreadcrumb from "@/components/dashboard-breadcrumb";
 
 export default function AdminLayout({
   children,
@@ -22,7 +21,10 @@ export default function AdminLayout({
           <AppSidebar />
           <main className="w-full h-screen p-4">
             <div className="flex justify-between items-center mb-5">
-              <SidebarTrigger />
+              <div className="flex items-center gap-3">
+                <SidebarTrigger />
+                <DashboardBreadcrumb />
+              </div>
               <ModeToggle />
             </div>
             {children}

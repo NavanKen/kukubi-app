@@ -21,6 +21,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     email: "",
     avatar: "",
   });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const getUserData = async () => {
@@ -32,6 +33,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           avatar: res.data.profile.avatar,
         });
       }
+      setIsLoading(false);
     };
 
     getUserData();
@@ -46,7 +48,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={sidebarAdmin} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userData} />
+        {isLoading ? <NavUser isLoading /> : <NavUser user={userData} />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
