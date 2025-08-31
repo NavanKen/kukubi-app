@@ -30,7 +30,7 @@ export const useUsers = (search: string, limit: number, page: number) => {
         case "INSERT": {
           const newData = payload.new as IUserAdmin;
 
-          if (newData.name.toLowerCase().includes(search.toLowerCase())) {
+          if (newData.name?.toLowerCase().includes(search.toLowerCase())) {
             const offset = (page - 1) * limit;
             if (offset === 0) {
               setMenuData((prev) => [newData, ...prev].slice(0, limit));
