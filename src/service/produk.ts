@@ -1,3 +1,4 @@
+import environment from "@/config/environment";
 import supabase from "@/lib/supabase/client";
 import { ICreateProduk, IProduk } from "@/types/produk.type";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
@@ -129,9 +130,10 @@ export const deleteProduk = async (
     .single();
 
   const img = imageData?.image;
+  const supabaseUrl = environment.SUPABASE_URL;
 
   const oldImage = img.replace(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/kukubi-buckets/`,
+    `${supabaseUrl}/storage/v1/object/public/kukubi-buckets/`,
     ""
   );
 

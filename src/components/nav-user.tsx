@@ -1,6 +1,13 @@
 "use client";
 
-import { Bell, ChevronsUpDown, CreditCard, LogOut, User } from "lucide-react";
+import {
+  Bell,
+  ChevronsUpDown,
+  CreditCard,
+  Loader2,
+  LogOut,
+  User,
+} from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -20,6 +27,20 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IUser } from "@/types/auth.type";
+import { logout } from "@/service/auth";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import { Button } from "./ui/button";
+// import { useRouter } from "next/navigation";
 
 export function NavUser({
   user,
@@ -29,47 +50,52 @@ export function NavUser({
   isLoading?: boolean;
 }) {
   const { isMobile } = useSidebar();
+  const [open, setOpen] = useState(false);
+  // const router = useRouter();
+  // const handleLogout = async () => {
+  //   const res = await logout();
+
+  //   if (!res.status) {
+  //     toast.error("gagal logout");
+  //   }
+  //   toast.success("Berhasil Keluar");
+
+  //   router.push("/auth/login");
+  // };
+
+  const handleLogout = async () => {
+    const res = await logout();
+
+    if (!res.status) {
+      toast.error("Gagal untuk Keluar");
+      return;
+    }
+
+    toast.success("Berhasil Keluar");
+
+    window.location.href = "/auth/login";
+  };
 
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        {isLoading ? (
-          <SidebarMenuButton size="lg" disabled>
-            <Skeleton className="h-8 w-8 rounded-lg" />
-            <div className="grid flex-1 text-left text-sm leading-tight space-y-1 ml-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-3 w-32" />
-            </div>
-            <Skeleton className="ml-auto h-4 w-4" />
-          </SidebarMenuButton>
-        ) : user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuButton
-                size="lg"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              >
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">
-                    {user.name?.charAt(0) ?? "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
-                </div>
-                <ChevronsUpDown className="ml-auto size-4" />
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-              side={isMobile ? "bottom" : "right"}
-              align="end"
-              sideOffset={4}
-            >
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+    <>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          {isLoading ? (
+            <SidebarMenuButton size="lg" disabled>
+              <Skeleton className="h-8 w-8 rounded-lg" />
+              <div className="grid flex-1 text-left text-sm leading-tight space-y-1 ml-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <Skeleton className="ml-auto h-4 w-4" />
+            </SidebarMenuButton>
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage src={user.avatar} alt={user.name} />
                     <AvatarFallback className="rounded-lg">
@@ -80,32 +106,91 @@ export function NavUser({
                     <span className="truncate font-medium">{user.name}</span>
                     <span className="truncate text-xs">{user.email}</span>
                   </div>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <User />
-                  Profile
+                  <ChevronsUpDown className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                side={isMobile ? "bottom" : "right"}
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarFallback className="rounded-lg">
+                        {user.name?.charAt(0) ?? "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-medium">{user.name}</span>
+                      <span className="truncate text-xs">{user.email}</span>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <User />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <CreditCard />
+                    Pengaturan
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Bell />
+                    Notifikasi
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger asChild>
+                      <div className="flex items-center gap-2">
+                        <LogOut />
+                        Log out
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[350px]">
+                      <DialogHeader>
+                        <DialogTitle>Keluar</DialogTitle>
+                        <DialogDescription>
+                          Yakin mau Keluar ? Anda harus login kembali untuk
+                          mengakses fitur fitur yang ada di sistem saat ini
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter className="mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => setOpen(false)}
+                        >
+                          Batal
+                        </Button>
+                        <Button
+                          onClick={handleLogout}
+                          className="bg-red-500 text-white hover:bg-red-600"
+                          disabled={isLoading ? true : false}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Memuat...
+                            </>
+                          ) : (
+                            "Keluar"
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <CreditCard />
-                  Pengaturan
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Bell />
-                  Notifikasi
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <LogOut />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
-      </SidebarMenuItem>
-    </SidebarMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </>
   );
 }

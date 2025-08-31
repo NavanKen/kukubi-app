@@ -1,102 +1,79 @@
-import supabase from "@/lib/supabase/client";
 import { ILogin, IRegister, IUserResponse } from "@/types/auth.type";
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "/api/auth",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
+});
 
 export const login = async (payload: ILogin) => {
-  const { email, password } = payload;
+  try {
+    const response = await api.post("/login", payload);
+    return response.data;
+  } catch (error) {
+    console.error("Login service error:", error);
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data;
+    }
 
-  if (error) {
     return {
-      status: null,
-      pesan: error?.message,
+      status: false,
+      pesan: "Network error",
     };
   }
-
-  return {
-    status: true,
-    data: data,
-  };
 };
 
 export const register = async (payload: IRegister) => {
-  const { email, password, confirm_password } = payload;
+  try {
+    const response = await api.post("/register", payload);
+    return response.data;
+  } catch (error) {
+    console.error("Register service error:", error);
 
-  if (password !== confirm_password) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data;
+    }
+
     return {
-      status: null,
-      pesan: "Password atau Konfirmasi Password tidak sesuai !",
+      status: false,
+      pesan: "Network error",
     };
   }
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
-
-  if (error) {
-    return {
-      status: null,
-      pesan: error?.message,
-    };
-  }
-  return {
-    status: true,
-    data: data,
-  };
 };
 
 export const getProfileUser = async (): Promise<IUserResponse> => {
-  const { data, error } = await supabase.auth.getUser();
+  try {
+    const response = await api.get("/profile");
+    return response.data;
+  } catch (error) {
+    console.error("Get profile service error:", error);
 
-  if (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data;
+    }
+
     return {
       status: null,
-      pesan: error?.message,
+      pesan: "Network error",
     };
   }
-
-  const userId: string = data.user?.id || "";
-
-  const { data: UserProfile, error: userError } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  if (userError) {
-    return {
-      status: null,
-      pesan: userError?.message,
-    };
-  }
-
-  const authData = data.user;
-  const userProfileData = UserProfile;
-
-  return {
-    status: true,
-    data: {
-      auth: authData,
-      profile: userProfileData,
-    },
-  };
 };
 
 export const logout = async () => {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
+  try {
+    const response = await api.post("/logout");
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data;
+    }
     return {
-      status: null,
-      pesan: error?.message,
+      status: false,
+      pesan: "Network error",
     };
   }
-
-  return {
-    status: true,
-    pesan: "Berhasil Keluar",
-  };
 };

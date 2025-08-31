@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
+import environment from "@/config/environment";
 // import { Database } from "@/types/database.types";
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+  environment.SUPABASE_URL || "",
+  environment.SUPABASE_KEY || ""
 );
 
 export default supabase;

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Loader2, User } from "lucide-react";
-import { login } from "@/service/auth";
+import { getProfileUser, login } from "@/service/auth";
 import { ILogin } from "@/types/auth.type";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -43,7 +43,21 @@ const LoginPage = () => {
 
     setIsLoading(false);
     toast.success("Berhasil Login");
-    router.push("/");
+
+    const user = await getProfileUser();
+    const role = user.data?.profile.role;
+
+    switch (role) {
+      case "admin":
+        router.push("/admin/dashboard");
+        break;
+      case "cashier":
+        router.push("/cashier/dashboard");
+        break;
+      default:
+        router.push("/member/dashboard");
+        break;
+    }
   };
 
   return (
