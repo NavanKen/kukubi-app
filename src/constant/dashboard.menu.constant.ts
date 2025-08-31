@@ -61,25 +61,20 @@ export const sidebarAdmin = [
         icon: Package,
       },
       {
-        title: "Kategori",
-        url: "/admin/categories",
-        icon: Tags,
-      },
-      {
         title: "Pengguna",
         url: "/admin/users",
         icon: Users,
       },
-      {
-        title: "Metode Pembayaran",
-        url: "/admin/payment-methods",
-        icon: CreditCard,
-      },
-      {
-        title: "Metode Pengiriman",
-        url: "/admin/shipping-methods",
-        icon: Truck,
-      },
+      // {
+      //   title: "Metode Pembayaran",
+      //   url: "/admin/payment-methods",
+      //   icon: CreditCard,
+      // },
+      // {
+      //   title: "Metode Pengiriman",
+      //   url: "/admin/shipping-methods",
+      //   icon: Truck,
+      // },
     ],
   },
 ];

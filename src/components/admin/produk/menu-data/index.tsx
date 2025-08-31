@@ -1,12 +1,13 @@
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+interface MenuDataProps {
+  search: string;
+  limit: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  onLimitChange: (limit: number) => void;
+}
+
 import {
   Table,
   TableBody,
@@ -15,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -25,33 +25,24 @@ import {
 } from "@/components/ui/select";
 import DeleteDialog from "../dialog/delete-dialog";
 import EditDialog from "../dialog/edit-dialog";
-import { useEffect, useState } from "react";
-import { IProduk } from "@/types/produk.type";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getProduk } from "@/service/produk";
 import Image from "next/image";
+import { useProduk } from "@/hooks/use-produk";
+import { Pagination } from "@/components/ui/pagination";
 
-const MenuData = () => {
-  const [menuData, setMenuData] = useState<IProduk[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const getData = async () => {
-    const res = await getProduk();
-
-    if (res.status && res.data) {
-      setMenuData(res.data);
-    }
-
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
+const MenuData = ({
+  search,
+  limit,
+  page,
+  onPageChange,
+  onLimitChange,
+}: MenuDataProps) => {
+  const { menuData, isLoading, total } = useProduk(search, limit, page);
+  const totalPages = Math.ceil(total / limit);
 
   return (
     <>
-      <div>
+      <div className="">
         <div className="rounded-md border overflow-hidden">
           <Table>
             <TableHeader>
@@ -99,12 +90,12 @@ const MenuData = () => {
                     key={index}
                     className="bg-neutral-50 dark:bg-neutral-900"
                   >
-                    <TableCell className="py-3">1</TableCell>
+                    <TableCell className="py-3">{index + 1}</TableCell>
                     <TableCell className="py-3">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center lg:gap-3 flex-col lg:flex-row">
                         <Image
-                          src={menu.image}
-                          alt={menu.image}
+                          src={menu.image!}
+                          alt={menu.image!}
                           width={40}
                           height={40}
                           className="rounded-md object-cover"
@@ -118,30 +109,20 @@ const MenuData = () => {
                       {menu.price}
                     </TableCell>
                     <TableCell className="py-3">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <EditDialog
-                              data={{
-                                id: menu.id,
-                                nama: menu.name,
-                                deskripsi: menu.description,
-                                image: menu.image,
-                                price: menu.price,
-                                stock: menu.stock,
-                              }}
-                            />
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <DeleteDialog id={menu.id} />
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex gap-3">
+                        <EditDialog
+                          data={{
+                            id: menu.id,
+                            name: menu.name,
+                            description: menu.description,
+                            image: menu.image,
+                            price: menu.price,
+                            stock: menu.stock,
+                          }}
+                        />
+
+                        <DeleteDialog id={menu.id!} />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -149,20 +130,31 @@ const MenuData = () => {
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center gap-2 justify-center sm:justify-start mt-4">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">
-            Limit
-          </span>
-          <Select>
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-2 justify-between mt-4 pb-7">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              Limit
+            </span>
+            <Select
+              value={String(limit)}
+              onValueChange={(val) => onLimitChange(Number(val))}
+            >
+              <SelectTrigger className="w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
         </div>
       </div>
     </>

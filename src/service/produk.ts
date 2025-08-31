@@ -1,6 +1,51 @@
 import supabase from "@/lib/supabase/client";
-import { IProduk } from "@/types/produk.type";
+import { ICreateProduk, IProduk } from "@/types/produk.type";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
+export const subscribeProduk = (
+  callback: (payload: RealtimePostgresChangesPayload<ICreateProduk>) => void
+) => {
+  const channel = supabase
+    .channel("produk-changes")
+    .on<ICreateProduk>(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "products" },
+      (payload) => {
+        callback(payload);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+};
+
+export const getProdukPaginate = async ({
+  search = "",
+  limit = 10,
+  offset = 0,
+}: {
+  search?: string;
+  limit?: number;
+  offset?: number;
+}) => {
+  const query = supabase
+    .from("products")
+    .select("*", { count: "exact" })
+    .ilike("name", `%${search}%`)
+    .range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    return { status: false, error };
+  }
+
+  return { status: true, data, count };
+};
+
+// Gak digae gara gara ws onok getProdukPaginate()
 export const getProduk = async (): Promise<{
   status: boolean;
   pesan?: string;
@@ -22,7 +67,33 @@ export const getProduk = async (): Promise<{
   };
 };
 
-export const createProduk = async () => {};
+export const createProduk = async (
+  payload: ICreateProduk
+): Promise<{ status: boolean; pesan?: string }> => {
+  const { name, description, price, stock, file } = payload;
+
+  const image = await uploadFile(file!);
+
+  if (!image) {
+    return { status: false, pesan: "Gagal upload File" };
+  }
+
+  const { error } = await supabase
+    .from("products")
+    .insert({ name, description, price, stock, image });
+
+  if (error) {
+    return {
+      status: false,
+      pesan: error?.message || "Gagal update data",
+    };
+  }
+
+  return {
+    status: true,
+    pesan: "Data berhasil ditambahkan",
+  };
+};
 
 export const editProduk = async (
   payload: IProduk
@@ -48,9 +119,39 @@ export const editProduk = async (
   };
 };
 
-export const deleteProduk = async () => {};
+export const deleteProduk = async (
+  id: string
+): Promise<{ status: boolean; pesan?: string }> => {
+  const { data: imageData } = await supabase
+    .from("products")
+    .select("image")
+    .eq("id", id)
+    .single();
 
-export const uploadImage = async (file: File, oldImage?: string) => {
+  const img = imageData?.image;
+
+  const oldImage = img.replace(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/kukubi-buckets/`,
+    ""
+  );
+
+  await supabase.storage.from("kukubi-buckets").remove([oldImage]);
+  const { error } = await supabase.from("products").delete().eq("id", id);
+
+  if (error) {
+    return {
+      status: false,
+      pesan: error?.message || "Terjadi Kesalahan",
+    };
+  }
+
+  return {
+    status: true,
+    pesan: "Data berhasil dihapus",
+  };
+};
+
+export const uploadFile = async (file: File, oldImage?: string) => {
   const fileExt = file.name.split(".").pop();
   const fileName = `${Date.now()}.${fileExt}`;
   const filePath = `images/produk/${fileName}`;

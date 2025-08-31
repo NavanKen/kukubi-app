@@ -11,35 +11,39 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Image as ImageIcon } from "lucide-react";
-import { editProduk, uploadImage } from "@/service/produk";
+import { Image as ImageIcon, EditIcon, Loader2 } from "lucide-react";
+import { editProduk, uploadFile } from "@/service/produk";
 import { toast } from "sonner";
+import { IEditProduk } from "@/types/produk.type";
 
-interface EditDialogProps {
-  data: {
-    id: string;
-    nama: string;
-    deskripsi: string;
-    price: number;
-    stock: number;
-    image: string;
-  };
-}
-
-const EditDialog = ({ data }: EditDialogProps) => {
+const EditDialog = ({ data }: IEditProduk) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
-    nama: data.nama || "",
+    nama: data.name || "",
     price: data.price || 0,
     stock: data.stock || 0,
-    deskripsi: data.deskripsi || "",
+    deskripsi: data.description || "",
     image: data.image || "",
     file: null as File | null,
   });
-
+  const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(data.image || null);
+
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        nama: data.name || "",
+        price: data.price || 0,
+        stock: data.stock || 0,
+        deskripsi: data.description || "",
+        image: data.image || "",
+        file: null,
+      });
+      setPreview(data.image || null);
+    }
+  }, [open, data]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -65,12 +69,13 @@ const EditDialog = ({ data }: EditDialogProps) => {
 
   const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
 
     let imageUrl = formData.image;
 
     if (formData.file) {
       try {
-        imageUrl = await uploadImage(formData.file, data.image);
+        imageUrl = await uploadFile(formData.file, data.image);
       } catch (err: unknown) {
         if (err instanceof Error) {
           console.error("Upload gagal:", err.message);
@@ -81,11 +86,11 @@ const EditDialog = ({ data }: EditDialogProps) => {
       }
     }
 
-    const id = data.id;
+    const id = data.id || "";
     const name = formData.nama;
     const description = formData.deskripsi;
     const stock = formData.stock;
-    const price = formData.stock;
+    const price = formData.price;
     const image = imageUrl;
 
     const insertData = {
@@ -101,18 +106,18 @@ const EditDialog = ({ data }: EditDialogProps) => {
 
     if (!res.status) {
       toast.error("Gagal edit data");
+      setIsLoading(false);
     }
 
     toast.success(res.pesan);
     setOpen(false);
+    setIsLoading(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start">
-          Edit
-        </Button>
+        <EditIcon className="w-5 h-5 cursor-pointer" />
       </DialogTrigger>
       <DialogContent className="">
         <DialogHeader>
@@ -202,7 +207,17 @@ const EditDialog = ({ data }: EditDialogProps) => {
             >
               Batal
             </Button>
-            <Button type="submit">Update</Button>
+
+            <Button type="submit" disabled={isLoading ? true : false}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Memuat...
+                </>
+              ) : (
+                "Update"
+              )}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
