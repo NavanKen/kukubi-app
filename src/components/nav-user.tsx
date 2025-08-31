@@ -40,7 +40,6 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Button } from "./ui/button";
-// import { useRouter } from "next/navigation";
 
 export function NavUser({
   user,
@@ -51,28 +50,20 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const [open, setOpen] = useState(false);
-  // const router = useRouter();
-  // const handleLogout = async () => {
-  //   const res = await logout();
-
-  //   if (!res.status) {
-  //     toast.error("gagal logout");
-  //   }
-  //   toast.success("Berhasil Keluar");
-
-  //   router.push("/auth/login");
-  // };
+  const [Loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
+    setLoading(true);
     const res = await logout();
 
     if (!res.status) {
       toast.error("Gagal untuk Keluar");
+      setLoading(false);
       return;
     }
 
     toast.success("Berhasil Keluar");
-
+    setLoading(false);
     window.location.href = "/auth/login";
   };
 
@@ -171,9 +162,9 @@ export function NavUser({
                         <Button
                           onClick={handleLogout}
                           className="bg-red-500 text-white hover:bg-red-600"
-                          disabled={isLoading ? true : false}
+                          disabled={Loading ? true : false}
                         >
-                          {isLoading ? (
+                          {Loading ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Memuat...
