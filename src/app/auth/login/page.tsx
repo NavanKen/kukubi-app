@@ -7,7 +7,7 @@ import { Eye, EyeOff, Loader2, User } from "lucide-react";
 import { getProfileUser, login } from "@/service/auth";
 import { ILogin } from "@/types/auth.type";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -20,6 +20,8 @@ const LoginPage = () => {
   const [visiBility, setVisibility] = useState<boolean>(true);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +48,11 @@ const LoginPage = () => {
 
     const user = await getProfileUser();
     const role = user.data?.profile.role;
+
+    if (callbackUrl) {
+      router.push(callbackUrl);
+      return;
+    }
 
     switch (role) {
       case "admin":
