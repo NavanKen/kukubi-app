@@ -7,7 +7,7 @@ import { Eye, EyeOff, Loader2, User } from "lucide-react";
 import { getProfileUser, login } from "@/service/auth";
 import { ILogin } from "@/types/auth.type";
 import { toast } from "sonner";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 
