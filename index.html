@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - Kukubi Dimsum</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #fafafa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff6b35;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #ff6b35;
+        }
+
+        /* Main Content */
+        .main {
+            padding: 3rem 0;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Search Section */
+        .search-section {
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+            transition: border-color 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #ff6b35;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 1.2rem;
+        }
+
+        /* Menu Grid */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .menu-image {
+            width: 100%;
+            height: 250px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .menu-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #ff6b35;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .menu-content {
+            padding: 1.5rem;
+        }
+
+        .menu-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-description {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .menu-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ff6b35;
+        }
+
+        .add-to-cart {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .add-to-cart:hover {
+            background: #e55a2b;
+            transform: translateY(-2px);
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .no-results-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .container {
+                padding: 0 15px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Cart Icon */
+        .cart-icon {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .cart-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e55a2b;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="container">
+            <div class="nav">
+                <a href="#" class="logo">Kukubi</a>
+                <ul class="nav-links">
+                    <li><a href="#">Beranda</a></li>
+                    <li><a href="#" class="active">Menu</a></li>
+                    <li><a href="#">Tentang Kami</a></li>
+                    <li><a href="#">Kontak</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">Menu Dimsum Kami</h1>
+                <p class="page-subtitle">
+                    Pilihan dimsum autentik yang dibuat fresh setiap hari dengan resep turun temurun dan bahan-bahan pilihan terbaik
+                </p>
+            </div>
+
+            <div class="search-section">
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        placeholder="Cari menu favorit kamu..."
+                        id="searchInput"
+                    >
+                </div>
+            </div>
+
+            <div class="menu-grid" id="menuGrid">
+                <!-- Menu items will be populated by JavaScript -->
+            </div>
+
+            <div class="no-results hidden" id="noResults">
+                <div class="no-results-icon">🔍</div>
+                <h3>Menu tidak ditemukan</h3>
+                <p>Coba gunakan kata kunci yang berbeda</p>
+            </div>
+        </div>
+    </main>
+
+    <button class="cart-icon" onclick="showCart()">
+        🛒
+        <span class="cart-count" id="cartCount">0</span>
+    </button>
+
+    <script>
+        // Sample menu data
+        const menuItems = [
+            {
+                id: 1,
+                name: "Siomay Ayam Premium",
+                description: "Siomay ayam dengan isian daging ayam cincang halus, wortel, dan bumbu khas. Disajikan dengan saus kacang istimewa.",
+                price: "Rp 25.000",
+                image: "https://images.unsplash.com/photo-1563379091339-03246963d19d?w=400&h=250&fit=crop",
+                badge: "Bestseller"
+            },
+            {
+                id: 2,
+                name: "Hakao Udang Segar",
+                description: "Dimsum transparan berisi udang segar yang kenyal dan manis. Dibuat dengan kulit yang tipis dan lembut.",
+                price: "Rp 30.000",
+                image: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&h=250&fit=crop",
+                badge: "Fresh Daily"
+            },
+            {
+                id: 3,
+                name: "Pork Bun Steam",
+                description: "Bakpao kukus dengan isian daging babi char siu yang manis gurih. Tekstur bakpao yang empuk dan isian yang melimpah.",
+                price: "Rp 28.000",
+                image: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400&h=250&fit=crop",
+                badge: "Traditional"
+            },
+            {
+                id: 4,
+                name: "Lumpia Shanghai",
+                description: "Lumpia goreng crispy dengan isian sayuran segar dan daging cincang. Disajikan dengan saus asam manis.",
+                price: "Rp 22.000",
+                image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=250&fit=crop",
+                badge: "Crispy"
+            },
+            {
+                id: 5,
+                name: "Xiao Long Bao",
+                description: "Soup dumpling khas Shanghai dengan kuah kaldu yang kaya dan daging yang lembut. Pengalaman unik dalam setiap gigitan.",
+                price: "Rp 35.000",
+                image: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&h=250&fit=crop",
+                badge: "Signature"
+            }
+        ];
+
+        let cart = [];
+        let filteredItems = [...menuItems];
+
+        function renderMenuItems(items) {
+            const menuGrid = document.getElementById('menuGrid');
+            const noResults = document.getElementById('noResults');
+            
+            if (items.length === 0) {
+                menuGrid.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            }
+            
+            noResults.classList.add('hidden');
+            
+            menuGrid.innerHTML = items.map(item => `
+                <div class="menu-card" onclick="selectItem(${item.id})">
+                    <div class="menu-image" style="background-image: url('${item.image}')">
+                        <span class="menu-badge">${item.badge}</span>
+                    </div>
+                    <div class="menu-content">
+                        <h3 class="menu-title">${item.name}</h3>
+                        <p class="menu-description">${item.description}</p>
+                        <div class="menu-footer">
+                            <span class="menu-price">${item.price}</span>
+                            <button class="add-to-cart" onclick="addToCart(event, ${item.id})">
+                                <span>+</span>
+                                Tambah
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchMenu() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredItems = menuItems.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.description.toLowerCase().includes(searchTerm)
+            );
+            renderMenuItems(filteredItems);
+        }
+
+        function addToCart(event, itemId) {
+            event.stopPropagation();
+            
+            const item = menuItems.find(item => item.id === itemId);
+            const existingItem = cart.find(cartItem => cartItem.id === itemId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({...item, quantity: 1});
+            }
+            
+            updateCartCount();
+            
+            // Visual feedback
+            const button = event.target.closest('.add-to-cart');
+            button.style.background = '#4CAF50';
+            button.innerHTML = '<span>✓</span> Ditambahkan';
+            
+            setTimeout(() => {
+                button.style.background = '#ff6b35';
+                button.innerHTML = '<span>+</span> Tambah';
+            }, 1500);
+        }
+
+        function updateCartCount() {
+            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cartCount').textContent = totalItems;
+        }
+
+        function selectItem(itemId) {
+            const item = menuItems.find(item => item.id === itemId);
+            alert(`Detail: ${item.name}\n\n${item.description}\n\nHarga: ${item.price}`);
+        }
+
+        function showCart() {
+            if (cart.length === 0) {
+                alert('Keranjang masih kosong!\nSilakan pilih menu terlebih dahulu.');
+                return;
+            }
+            
+            let cartDetails = 'Keranjang Belanja:\n\n';
+            let total = 0;
+            
+            cart.forEach(item => {
+                const price = parseInt(item.price.replace(/\D/g, ''));
+                const subtotal = price * item.quantity;
+                total += subtotal;
+                
+                cartDetails += `${item.name}\n`;
+                cartDetails += `${item.quantity}x ${item.price} = Rp ${subtotal.toLocaleString('id-ID')}\n\n`;
+            });
+            
+            cartDetails += `Total: Rp ${total.toLocaleString('id-ID')}`;
+            alert(cartDetails);
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', searchMenu);
+        
+        // Initial render
+        renderMenuItems(menuItems);
+        
+        // Smooth animations on load
+        window.addEventListener('load', () => {
+            const cards = document.querySelectorAll('.menu-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

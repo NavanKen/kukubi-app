@@ -1,14 +1,15 @@
 import Navbar from "@/components/ui/navbar";
+import Menu from "@/components/menu";
+import Footer from "@/components/ui/footer";
 
-const Menu = () => {
+const MenuPages = () => {
   return (
     <>
       <Navbar />
-      <div className="py-24 px-7 md:px-20">
-        <h1>Halaman ini masih dalam tahap pengembangan :)</h1>
-      </div>
+      <Menu />
+      <Footer />
     </>
   );
 };
 
-export default Menu;
+export default MenuPages;
