@@ -35,7 +35,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useState } from "react";
@@ -49,8 +48,8 @@ export function NavUser({
   isLoading?: boolean;
 }) {
   const { isMobile } = useSidebar();
-  const [open, setOpen] = useState(false);
   const [Loading, setLoading] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handleLogout = async () => {
     setLoading(true);
@@ -136,52 +135,48 @@ export function NavUser({
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                      <div className="flex items-center gap-2">
-                        <LogOut />
-                        Log out
-                      </div>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[350px]">
-                      <DialogHeader>
-                        <DialogTitle>Keluar</DialogTitle>
-                        <DialogDescription>
-                          Yakin mau Keluar ? Anda harus login kembali untuk
-                          mengakses fitur fitur yang ada di sistem saat ini
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter className="mt-4">
-                        <Button
-                          variant="outline"
-                          onClick={() => setOpen(false)}
-                        >
-                          Batal
-                        </Button>
-                        <Button
-                          onClick={handleLogout}
-                          className="bg-red-500 text-white hover:bg-red-600"
-                          disabled={Loading ? true : false}
-                        >
-                          {Loading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Memuat...
-                            </>
-                          ) : (
-                            "Keluar"
-                          )}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                <DropdownMenuItem
+                  className="flex items-center ga-2"
+                  onClick={() => setOpenDialog(true)}
+                >
+                  <LogOut />
+                  Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : null}
         </SidebarMenuItem>
       </SidebarMenu>
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent className="sm:max-w-[350px]">
+          <DialogHeader>
+            <DialogTitle>Keluar</DialogTitle>
+            <DialogDescription>
+              Yakin mau Keluar ? Anda harus login kembali untuk mengakses fitur
+              fitur yang ada di sistem saat ini
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setOpenDialog(false)}>
+              Batal
+            </Button>
+            <Button
+              onClick={handleLogout}
+              className="bg-red-500 text-white hover:bg-red-600"
+              disabled={Loading ? true : false}
+            >
+              {Loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Memuat...
+                </>
+              ) : (
+                "Keluar"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
