@@ -24,14 +24,14 @@ export const sidebarAdmin = [
     items: [
       {
         title: "Orders",
-        url: "/orders",
+        url: "/admin/orders",
         icon: ShoppingCart,
       },
-      {
-        title: "Pergerakan Stok",
-        url: "/stock-movements",
-        icon: Boxes,
-      },
+      // {
+      //   title: "Pergerakan Stok",
+      //   url: "/stock-movements",
+      //   icon: Boxes,
+      // },
     ],
   },
   {

@@ -3,9 +3,9 @@
 import {
   Bell,
   ChevronsUpDown,
-  CreditCard,
   Loader2,
   LogOut,
+  Settings,
   User,
 } from "lucide-react";
 
@@ -126,7 +126,7 @@ export function NavUser({
                     Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <CreditCard />
+                    <Settings />
                     Pengaturan
                   </DropdownMenuItem>
                   <DropdownMenuItem>
