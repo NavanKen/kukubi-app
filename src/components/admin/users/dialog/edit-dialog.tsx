@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { editAuthUser, editUser } from "@/service/user";
+import { editAuthUser, editUser, getUserData } from "@/service/user";
 
 const EditDialog = ({ data }: IEditUserAdmin) => {
   const [open, setOpen] = useState(false);
@@ -30,21 +30,30 @@ const EditDialog = ({ data }: IEditUserAdmin) => {
     id: data.id || "",
     nama: data.name || "",
     role: data.role,
+  });
+  const [credential, setCredential] = useState({
     email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      setFormData({
-        id: data.id || "",
-        nama: data.name || "",
-        role: data.role,
-        email: "",
+    const loadData = async () => {
+      const res = await getUserData(data.id!);
+      setCredential({
+        email: res.data?.email || "",
         password: "",
       });
-    }
+      if (open) {
+        setFormData({
+          id: data.id || "",
+          nama: data.name || "",
+          role: data.role,
+        });
+      }
+    };
+
+    loadData();
   }, [open, data]);
 
   const handleChange = (
@@ -57,15 +66,32 @@ const EditDialog = ({ data }: IEditUserAdmin) => {
     }));
   };
 
+  const handleChangeCredential = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setCredential((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     setIsLoading(true);
 
     const id = data.id || "";
     const name = formData.nama;
     const role = formData.role;
-    const email = formData.email;
-    const password = formData.password;
+    const email = credential.email;
+    const password = credential.password;
+
+    if (!password) {
+      toast.error("Masukkan password baru jika ingin edit user");
+      setIsLoading(false);
+      return;
+    }
 
     const insertData = {
       id,
@@ -128,8 +154,8 @@ const EditDialog = ({ data }: IEditUserAdmin) => {
                 className="py-5"
                 type="email"
                 name="email"
-                value={formData.email}
-                onChange={handleChange}
+                value={credential.email}
+                onChange={handleChangeCredential}
               />
             </div>
 
@@ -162,8 +188,9 @@ const EditDialog = ({ data }: IEditUserAdmin) => {
                 className="py-5"
                 type="password"
                 name="password"
-                value={formData.password}
-                onChange={handleChange}
+                value={credential.password}
+                placeholder="Masukkan Password Baru"
+                onChange={handleChangeCredential}
               />
             </div>
           </div>

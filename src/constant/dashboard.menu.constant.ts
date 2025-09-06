@@ -3,10 +3,7 @@ import {
   ShoppingCart,
   Boxes,
   Package,
-  Tags,
   Users,
-  CreditCard,
-  Truck,
   Receipt,
   Wallet,
 } from "lucide-react";
@@ -42,7 +39,7 @@ export const sidebarAdmin = [
     items: [
       {
         title: "Pengeluaran",
-        url: "/expenses",
+        url: "/admin/expenses",
         icon: Receipt,
       },
       {

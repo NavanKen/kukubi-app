@@ -140,7 +140,7 @@ const LoginForm = () => {
               )}
             </Button>
           </form>
-          <div className="relative mb-4">
+          {/* <div className="relative mb-4">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-300"></span>
             </div>
@@ -171,7 +171,7 @@ const LoginForm = () => {
               />
             </svg>
             Masuk dengan Google
-          </Button>
+          </Button> */}
           <div className="text-center text-sm font-semibold mt-5">
             <span className="text-gray-600">
               Belum punya akun ?{" "}

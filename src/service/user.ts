@@ -1,6 +1,7 @@
 import supabase from "@/lib/supabase/client";
 import { supabaseService } from "@/lib/supabase/admin";
 import { IUserAdmin } from "@/types/user.types";
+import { User } from "@supabase/supabase-js";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 export const subscribeUser = (
@@ -45,6 +46,24 @@ export const getUserPaginate = async ({
   }
 
   return { status: true, data, count };
+};
+
+export const getUserData = async (
+  id: string
+): Promise<{ status: boolean; pesan?: string; data?: User }> => {
+  const { data, error } = await supabaseService.getUserById(id);
+
+  if (error) {
+    return {
+      status: false,
+      pesan: "Terjadi Kesalahan",
+    };
+  }
+
+  return {
+    status: true,
+    data: data.user,
+  };
 };
 
 export const createUser = async (
