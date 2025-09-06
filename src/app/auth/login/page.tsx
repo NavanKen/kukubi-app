@@ -59,9 +59,9 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="w-full h-screen flex items-center justify-center">
+    <div className="w-full h-screen flex items-center justify-center px-3">
       <div className="flex rounded-lg overflow-hidden shadow-2xl">
-        <div className="bg-gradient-to-br from-orange-500 to-red-500 p-4">
+        <div className="bg-gradient-to-br from-orange-500 to-red-500 p-2">
           <User className="text-white" size={28} />
         </div>
         <div className="bg-stone-100 shadow-2xl p-6">

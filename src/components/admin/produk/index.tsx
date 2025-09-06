@@ -14,7 +14,7 @@ const Produk = () => {
   return (
     <>
       <div>
-        <div className="flex items-center justify-between">
+        <div className="flex md:flex-row flex-col md:items-center gap-3 justify-between">
           <h1 className="text-3xl font-bold">Produk Manajamen</h1>
           <div className="flex items-center gap-3">
             <div className="relative">
