@@ -37,7 +37,6 @@ const LoginForm = () => {
       toast.error(response.pesan || "Gagal untuk login");
       return;
     }
-    setIsLoading(false);
     toast.success("Berhasil Login");
     const user = await getProfileUser();
     const role = user.data?.profile.role;
@@ -56,6 +55,7 @@ const LoginForm = () => {
         router.push("/member/dashboard");
         break;
     }
+    setIsLoading(false);
   };
 
   return (

@@ -9,3 +9,9 @@ export interface IUserAdmin {
 export interface IEditUserAdmin {
   data: IUserAdmin;
 }
+
+export type UserInformation = {
+  name: string;
+  type: "guest" | "registered";
+  // order_type: "" | "";
+};

@@ -121,7 +121,7 @@ export const editProduk = async (
 };
 
 export const deleteProduk = async (
-  id: string
+  id: number
 ): Promise<{ status: boolean; pesan?: string }> => {
   const { data: imageData } = await supabase
     .from("products")

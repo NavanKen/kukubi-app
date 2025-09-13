@@ -16,7 +16,7 @@ import { useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
 
 interface DeleteDialogProps {
-  id: string;
+  id: number;
 }
 
 const DeleteDialog = ({ id }: DeleteDialogProps) => {

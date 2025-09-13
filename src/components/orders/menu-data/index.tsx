@@ -7,7 +7,6 @@ interface MenuDataProps {
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
 }
-
 import {
   Table,
   TableBody,

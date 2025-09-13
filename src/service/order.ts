@@ -1,7 +1,8 @@
 import supabase from "@/lib/supabase/client";
+import { IOrderItem } from "@/types/order_items.type";
 import { IOrders } from "@/types/orders.types";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import { getProfileUser } from "./auth";
+import { UserInformation } from "@/types/user.types";
 
 export const subscribeOrder = (
   callback: (payload: RealtimePostgresChangesPayload<IOrders>) => void
@@ -73,38 +74,123 @@ export const createOrder = async (
   };
 };
 
-export const editPengeluaran = async (
-  payload: IPengeluaran
-): Promise<{ status: boolean; pesan?: string }> => {
-  const { name, amount, description, date, id } = payload;
-
-  const dateString = date
-    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-        2,
-        "0"
-      )}-${String(date.getDate()).padStart(2, "0")}`
-    : null;
-
-  const { error } = await supabase
-    .from("expenses")
-    .update({ name, amount, description, date: dateString })
-    .eq("id", id)
-    .select()
-    .single();
+export const getOrderById = async (
+  id: string
+): Promise<{
+  status: boolean;
+  pesan?: string;
+  order?: IOrders[];
+  order_items?: IOrderItem[];
+  user?: UserInformation;
+}> => {
+  let userInformation: UserInformation = { name: "Unknown", type: "guest" };
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("id", id);
 
   if (error) {
     return {
       status: false,
-      pesan: error?.message || "Terjadi Kesalahan",
+      pesan: error?.message,
     };
   }
+
+  const { data: userInfo, error: userError } = await supabase
+    .from("orders")
+    .select("users (name), guest_identifier, customer_name")
+    .eq("id", id)
+    .single();
+
+  if (userError) {
+    return {
+      status: false,
+      pesan: userError?.message,
+    };
+  }
+
+  if (userInfo.guest_identifier) {
+    userInformation = {
+      name: userInfo.customer_name,
+      type: "guest",
+    };
+  } else {
+    userInformation = {
+      name: userInfo.users?.[0]?.name ?? "Unknown",
+      type: "registered",
+    };
+  }
+
+  const { data: orderItems, error: errorGetData } = await supabase
+    .from("order_items")
+    .select(
+      `
+      *,
+      products (
+        id,
+        name,
+        price,
+        image
+      )
+    `
+    )
+    .eq("order_id", id);
+
+  if (errorGetData) {
+    return {
+      status: false,
+      pesan: errorGetData?.message,
+    };
+  }
+
+  return {
+    status: true,
+    order: data as IOrders[],
+    order_items: orderItems as IOrderItem[],
+    user: userInformation,
+  };
+};
+
+export const detailOrder = async (
+  payload: IOrders
+): Promise<{ status: boolean; pesan?: string }> => {
+  const {
+    customer_name,
+    order_type,
+    status,
+    total_amount,
+    updated_at,
+    guest_identifier,
+    user_id,
+  } = payload;
+
+  // const dateString = date
+  //   ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+  //       2,
+  //       "0"
+  //     )}-${String(date.getDate()).padStart(2, "0")}`
+  //   : null;
+
+  // const { error } = await supabase
+  //   .from("expenses")
+  //   .update({ name, amount, description, date: dateString })
+  //   .eq("id", id)
+  //   .select()
+  //   .single();
+
+  // if (error) {
+  //   return {
+  //     status: false,
+  //     pesan: error?.message || "Terjadi Kesalahan",
+  //   };
+  // }
   return {
     status: true,
     pesan: "Data Berhasil Di Update",
   };
 };
 
-export const deletePengeluaran = async (
+export const deleteOrder = async (
   id: string
 ): Promise<{ status: boolean; pesan?: string }> => {
   const { error } = await supabase.from("expenses").delete().eq("id", id);
