@@ -86,7 +86,7 @@ const EditDialog = ({ data }: IEditProduk) => {
       }
     }
 
-    const id = data.id || "";
+    const id = data.id;
     const name = formData.nama;
     const description = formData.deskripsi;
     const stock = formData.stock;
