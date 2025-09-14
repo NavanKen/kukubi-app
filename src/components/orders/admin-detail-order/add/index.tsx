@@ -11,17 +11,21 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useProduk } from "@/hooks/use-produk";
 import type { IProduk } from "@/types/produk.type";
-import type { ICartItem, IOrderItem } from "@/types/order_items.type";
+import type {
+  ICartItem,
+  ICreateOrderItem,
+  IOrderItem,
+} from "@/types/order_items.type";
 import {
   createOrderItems,
-  deleteOrderItem,
-  updateOrderItemQuantity,
+  // deleteOrderItem,
+  // updateOrderItemQuantity,
 } from "@/service/order-items";
 import { toast } from "sonner";
 import { useDetailOrder } from "@/hooks/use-detail-order";
 
 const AddOrder = ({ orderId }: AddOrderProps) => {
-  const { orderItems: initialItems, isLoading } = useDetailOrder(orderId);
+  const { orderItems: initialItems } = useDetailOrder(orderId);
   const [cartItems, setCartItems] = useState<ICartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOrdering, setIsOrdering] = useState(false);
@@ -80,58 +84,58 @@ const AddOrder = ({ orderId }: AddOrderProps) => {
       return [...prev, { product, quantity: 1 }];
     });
   };
-  const handleUpdateQuantity = async (productId: number, quantity: number) => {
-    const item = cartItems.find((i) => i.product.id === productId);
-    if (!item) return;
+  // const handleUpdateQuantity = async (productId: number, quantity: number) => {
+  //   // const item = cartItems.find((i) => i.product.id === productId);
+  //   // if (!item) return;
 
-    if (item.id) {
-      const res = await updateOrderItemQuantity(item.id, quantity);
-      if (!res.status) {
-        toast.error(res.pesan || "Gagal update quantity");
-        return;
-      }
-    }
+  //   // if (item.id) {
+  //   //   const res = await updateOrderItemQuantity(item.id, quantity);
+  //   //   if (!res.status) {
+  //   //     toast.error(res.pesan || "Gagal update quantity");
+  //   //     return;
+  //   //   }
+  //   // }
 
-    setCartItems((prev) =>
-      prev.map((i) => (i.product.id === productId ? { ...i, quantity } : i))
-    );
-  };
+  //   setCartItems((prev) =>
+  //     prev.map((i) => (i.product.id === productId ? { ...i, quantity } : i))
+  //   );
+  // };
 
-  const handleRemoveItem = async (productId: number) => {
-    const item = cartItems.find((i) => i.product.id === productId);
-    if (!item) return;
+  // const handleRemoveItem = async (productId: number) => {
+  //   // const item = cartItems.find((i) => i.product.id === productId);
+  //   // if (!item) return;
 
-    if (item.id) {
-      const res = await deleteOrderItem(item.id);
-      if (!res.status) {
-        toast.error(res.pesan || "Gagal hapus item");
-        return;
-      }
-    }
+  //   // if (item.id) {
+  //   //   const res = await deleteOrderItem(item.id);
+  //   //   if (!res.status) {
+  //   //     toast.error(res.pesan || "Gagal hapus item");
+  //   //     return;
+  //   //   }
+  //   // }
 
-    setCartItems((prev) => prev.filter((i) => i.product.id !== productId));
-  };
+  //   setCartItems((prev) => prev.filter((i) => i.product.id !== productId));
+  // };
 
   const handleOrder = async () => {
     if (cartItems.length === 0) return;
+    console.log("ditekan");
 
     setIsOrdering(true);
     try {
-      const newItems = cartItems
-        .filter((i) => !i.id)
+      const orderItemsData: ICreateOrderItem[] = cartItems
+        .filter((item) => item.product.id !== undefined)
         .map((item) => ({
           order_id: Number(orderId),
-          product_id: item.product.id!,
+          product_id: Number(item.product.id),
           quantity: item.quantity,
           price: item.product.price,
         }));
 
-      if (newItems.length > 0) {
-        const res = await createOrderItems(newItems);
-        if (!res.status) throw new Error(res.pesan);
-      }
+      const res = await createOrderItems(orderItemsData);
 
-      toast.success("Order berhasil!");
+      if (!res.status) throw new Error(res.pesan);
+
+      toast.success(res.pesan);
       setCartItems([]);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -146,82 +150,82 @@ const AddOrder = ({ orderId }: AddOrderProps) => {
     }
   };
 
-  //   const handleUpdateQuantity = (productId: number, quantity: number) => {
-  //     if (quantity === 0) {
-  //       handleRemoveItem(productId);
-  //       return;
-  //     }
+  const handleUpdateQuantity = (productId: number, quantity: number) => {
+    if (quantity === 0) {
+      handleRemoveItem(productId);
+      return;
+    }
 
-  //     // const product = products.find((p) => p.id === productId);
-  //     const product = products.find(
-  //       (p) => p.id !== undefined && Number(p.id) === productId
-  //     );
+    // const product = products.find((p) => p.id === productId);
+    const product = products.find(
+      (p) => p.id !== undefined && Number(p.id) === productId
+    );
 
-  //     if (product && quantity > product.stock) {
-  //       toast.error("Stock Limit", {
-  //         description: `Cannot add more ${product.name}. Only ${product.stock} items available.`,
+    if (product && quantity > product.stock) {
+      toast.error("Stock Limit", {
+        description: `Cannot add more ${product.name}. Only ${product.stock} items available.`,
+      });
+      return;
+    }
+
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.product.id && Number(item.product.id) === productId
+          ? { ...item, quantity }
+          : item
+      )
+    );
+  };
+
+  // const handleRemoveItem = (productId: number) => {
+  //   setCartItems((prev) =>
+  //     prev.filter((item) => item.product.id !== productId)
+  //   );
+  // };
+
+  const handleRemoveItem = (productId: number) => {
+    setCartItems((prev) =>
+      prev.filter(
+        (item) => item.product.id && Number(item.product.id) !== productId
+      )
+    );
+  };
+
+  // const handleOrder = async () => {
+  //   if (cartItems.length === 0) return;
+
+  //   setIsOrdering(true);
+  //   try {
+
+  //     const orderItemsData: ICreateOrderItem[] = cartItems
+  //       .filter((item) => item.product.id !== undefined)
+  //       .map((item) => ({
+  //         product_id: Number(item.product.id),
+  //         quantity: item.quantity,
+  //         price: item.product.price,
+  //       }));
+
+  //     const result = await createOrderItems(orderItemsData);
+
+  //     if (result.status) {
+  //       toast.success("Order Berhasil", {
+  //         description: "Your order has been placed successfully!",
   //       });
-  //       return;
-  //     }
 
-  //     setCartItems((prev) =>
-  //       prev.map((item) =>
-  //         item.product.id && Number(item.product.id) === productId
-  //           ? { ...item, quantity }
-  //           : item
-  //       )
-  //     );
-  //   };
-
-  //   const handleRemoveItem = (productId: number) => {
-  //     setCartItems((prev) =>
-  //       prev.filter((item) => item.product.id !== productId)
-  //     );
-  //   };
-
-  //   const handleRemoveItem = (productId: number) => {
-  //     setCartItems((prev) =>
-  //       prev.filter(
-  //         (item) => item.product.id && Number(item.product.id) !== productId
-  //       )
-  //     );
-  //   };
-
-  //   const handleOrder = async () => {
-  //     if (cartItems.length === 0) return;
-
-  //     setIsOrdering(true);
-  //     try {
-  //       // Create order items for the order
-  //       const orderItemsData: ICreateOrderItem[] = cartItems
-  //         .filter((item) => item.product.id !== undefined)
-  //         .map((item) => ({
-  //           product_id: Number(item.product.id),
-  //           quantity: item.quantity,
-  //           price: item.product.price,
-  //         }));
-
-  //       const result = await createOrderItems(orderItemsData);
-
-  //       if (result.status) {
-  //         toast.success("Order Berhasil", {
-  //           description: "Your order has been placed successfully!",
-  //         });
-
-  //         setCartItems([]);
-  //       } else {
-  //         toast.error("Order Failed", {
-  //           description: result.pesan || "Failed to place order",
-  //         });
-  //       }
-  //     } catch (error) {
+  //       setCartItems([]);
+  //     } else {
   //       toast.error("Order Failed", {
-  //         description: "An error occurred while placing the order",
+  //         description: result.pesan || "Failed to place order",
   //       });
-  //     } finally {
-  //       setIsOrdering(false);
   //     }
-  //   };
+  //   } catch (error) {
+  //     toast.error("Order Failed", {
+  //       description: "An error occurred while placing the order",
+  //     });
+  //   } finally {
+  //     setIsOrdering(false);
+  //   }
+  // };
 
   return (
     <div>
