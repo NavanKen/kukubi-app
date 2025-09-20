@@ -27,6 +27,7 @@ const AppBar = () => {
   };
 
   const handleLogout = async () => {
+    const toastId = toast.loading("Mohon Tunggu Sebentar...");
     const res = await logout();
 
     if (!res.status) {
@@ -34,7 +35,7 @@ const AppBar = () => {
     }
 
     setIsDropdownOpen(false);
-    toast.success("Berhasil Keluar");
+    toast.success("Berhasil Keluar", { id: toastId });
     router.push("/auth/login");
   };
 
