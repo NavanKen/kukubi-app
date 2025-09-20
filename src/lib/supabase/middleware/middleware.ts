@@ -61,13 +61,27 @@ export async function updateSession(request: NextRequest) {
   let redirectUrl: string | null = null;
 
   if (pathname.startsWith("/admin")) {
-    if (role !== "admin") redirectUrl = "/";
+    if (role !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      url.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(url);
+    }
     if (pathname === "/admin") redirectUrl = "/admin/dashboard";
   } else if (pathname.startsWith("/member")) {
-    if (role !== "user") redirectUrl = "/";
-    if (pathname === "/member") redirectUrl = "/member/dashboard";
+    if (role !== "user") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      url.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(url);
+    }
   } else if (pathname.startsWith("/cashier")) {
-    if (role !== "cashier") redirectUrl = "/";
+    if (role !== "cashier") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      url.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(url);
+    }
     if (pathname === "/cashier") redirectUrl = "/cashier/dashboard";
   }
 
