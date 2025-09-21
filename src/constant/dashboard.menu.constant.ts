@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   ShoppingCart,
-  Boxes,
   Package,
   Users,
   Receipt,
@@ -43,8 +42,8 @@ export const sidebarAdmin = [
         icon: Receipt,
       },
       {
-        title: "Laporan Penjualan",
-        url: "/reports/sales",
+        title: "Laporan Keuangan",
+        url: "/admin/reports-sales",
         icon: Wallet,
       },
     ],

@@ -131,11 +131,10 @@ export const editUser = async (
 export const editAuthUser = async (
   payload: IUserAdmin
 ): Promise<{ status: boolean; pesan?: string }> => {
-  const { email, password, id } = payload;
+  const { email, id } = payload;
 
   const { error } = await supabaseService.updateUserById(id!, {
     email,
-    password,
   });
 
   if (error) {

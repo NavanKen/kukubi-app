@@ -120,7 +120,7 @@ const LoginForm = () => {
                 </Label>
               </div>
               <Link
-                href="#"
+                href="/auth/forgot-password"
                 className="text-sm text-orange-600 hover:text-orange-700"
               >
                 Lupa password?

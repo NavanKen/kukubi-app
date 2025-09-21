@@ -33,7 +33,6 @@ const EditDialog = ({ data }: IEditUserAdmin) => {
   });
   const [credential, setCredential] = useState({
     email: "",
-    password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,7 +41,6 @@ const EditDialog = ({ data }: IEditUserAdmin) => {
       const res = await getUserData(data.id!);
       setCredential({
         email: res.data?.email || "",
-        password: "",
       });
       if (open) {
         setFormData({
@@ -85,13 +83,6 @@ const EditDialog = ({ data }: IEditUserAdmin) => {
     const name = formData.nama;
     const role = formData.role;
     const email = credential.email;
-    const password = credential.password;
-
-    if (!password) {
-      toast.error("Masukkan password baru jika ingin edit user");
-      setIsLoading(false);
-      return;
-    }
 
     const insertData = {
       id,
@@ -102,7 +93,6 @@ const EditDialog = ({ data }: IEditUserAdmin) => {
     const insertAuthData = {
       id,
       email,
-      password,
     };
 
     const resAuth = await editAuthUser(insertAuthData);
@@ -180,18 +170,6 @@ const EditDialog = ({ data }: IEditUserAdmin) => {
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
-              <Input
-                className="py-5"
-                type="password"
-                name="password"
-                value={credential.password}
-                placeholder="Masukkan Password Baru"
-                onChange={handleChangeCredential}
-              />
             </div>
           </div>
 

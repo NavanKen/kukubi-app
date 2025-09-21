@@ -1,7 +1,9 @@
+import RecentTransactions from "@/components/member/dashboard/ui/recent-transaction";
+
 const OrderMemberPages = () => {
   return (
     <>
-      <div>Masih Dalam Tahap Pengembangan</div>
+      <RecentTransactions />
     </>
   );
 };

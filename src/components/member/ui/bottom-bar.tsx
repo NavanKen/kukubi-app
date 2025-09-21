@@ -16,25 +16,25 @@ const navItems: NavItem[] = [
   {
     id: "home",
     label: "Beranda",
-    href: "/dashboard",
+    href: "/member",
     icon: <Home className="w-5 h-5" />,
   },
   {
     id: "menu",
     label: "Menu",
-    href: "/menu",
+    href: "/member/menu",
     icon: <UtensilsCrossed className="w-5 h-5" />,
   },
   {
     id: "orders",
     label: "Pesanan",
-    href: "/orders",
+    href: "/member/order",
     icon: <ShoppingBag className="w-5 h-5" />,
   },
   {
     id: "profile",
     label: "Profil",
-    href: "/profile",
+    href: "/member/profile",
     icon: <User className="w-5 h-5" />,
   },
 ];
