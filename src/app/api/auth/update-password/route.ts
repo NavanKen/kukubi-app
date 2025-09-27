@@ -4,10 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { email, password } = await req.json();
+    const { password } = await req.json();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+    const { error } = await supabase.auth.updateUser({
       password,
     });
 
@@ -15,7 +14,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           status: false,
-          pesan: error.message,
+          pesan: error.message || "Terjadi Kesalahan",
         },
         { status: 400 }
       );
@@ -24,7 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         status: true,
-        data: data,
+        pesan: "Password Berhasil Diperbarui",
       },
       { status: 201 }
     );

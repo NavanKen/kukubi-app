@@ -3,12 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
+    const { email } = await req.json();
     const supabase = await createClient();
-    const { email, password } = await req.json();
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "http://localhost:3000/auth/update-password",
+      // redirectTo: "https://kukubi.vercel.app/auth/update-password",
     });
 
     if (error) {
@@ -21,19 +20,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(
-      {
-        status: true,
-        data: data,
-      },
-      { status: 201 }
-    );
+    return NextResponse.json({
+      status: true,
+      pesan: "Silahkan check email anda untuk memperbarui password",
+    });
   } catch (error) {
-    console.error("Login API error:", error);
+    console.error(error);
     return NextResponse.json(
       {
         status: false,
-        pesan: "Internal server error",
+        pesan: "Internal Server Error",
       },
       { status: 500 }
     );

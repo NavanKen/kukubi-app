@@ -16,8 +16,8 @@ export interface IUserProfile {
   bio?: string | null;
   address?: string | null;
   phone?: string | null;
-  role: string;
-  is_online: boolean;
+  role?: string;
+  is_online?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
   deleted_at?: string | null;
@@ -34,7 +34,9 @@ export interface IUserResponse {
 }
 
 export interface IUser {
+  userId: string;
   name: string;
   email?: string;
   avatar: string;
+  role?: string;
 }

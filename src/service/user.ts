@@ -3,6 +3,7 @@ import { supabaseService } from "@/lib/supabase/admin";
 import { IUserAdmin } from "@/types/user.types";
 import { User } from "@supabase/supabase-js";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { IUserProfile } from "@/types/auth.type";
 
 export const subscribeUser = (
   callback: (payload: RealtimePostgresChangesPayload<IUserAdmin>) => void
@@ -183,4 +184,54 @@ export const deleteAuthUser = async (
     status: true,
     pesan: "Data berhasil dihapus",
   };
+};
+
+export const UpdateProfile = async (
+  payload: IUserProfile
+): Promise<{ status: boolean; pesan?: string }> => {
+  const { id, name, bio, address, phone, avatar } = payload;
+
+  const { error } = await supabase
+    .from("users")
+    .update({ name, bio, address, phone, avatar })
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    return {
+      status: false,
+      pesan: error?.message || "Terjadi Kesalahan",
+    };
+  }
+
+  return {
+    status: true,
+    pesan: "Profile Berhasil Di Perbarui",
+  };
+};
+
+export const uploadFile = async (file: File, oldImage?: string) => {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${Date.now()}.${fileExt}`;
+  const filePath = `images/avatar/${fileName}`;
+
+  if (oldImage) {
+    const oldPath = oldImage.replace(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/kukubi-buckets/`,
+      ""
+    );
+    await supabase.storage.from("kukubi-buckets").remove([oldPath]);
+  }
+
+  const { error } = await supabase.storage
+    .from("kukubi-buckets")
+    .upload(filePath, file, { upsert: true });
+
+  if (error) throw error;
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("kukubi-buckets").getPublicUrl(filePath);
+
+  return publicUrl;
 };

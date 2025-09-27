@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import Link from "next/link";
 
 export function NavUser({
   user,
@@ -121,9 +122,14 @@ export function NavUser({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <User />
-                    Profile
+                  <DropdownMenuItem asChild>
+                    <Link
+                      className="flex items-center gap-2"
+                      href={`/profile/${user.userId}`}
+                    >
+                      <User />
+                      Profile
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Settings />

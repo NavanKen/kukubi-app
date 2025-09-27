@@ -9,16 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Loader2, KeyRound } from "lucide-react";
-import { register } from "@/service/auth";
-import { IRegister } from "@/types/auth.type";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import supabase from "@/lib/supabase/client";
+import { UpdatePassword } from "@/service/auth";
 
-const RegisterPage = () => {
-  const [credential, setCredential] = useState<IRegister>({
-    email: "",
+const UpdatePasswordPage = () => {
+  const [credential, setCredential] = useState({
     password: "",
     confirm_password: "",
   });
@@ -28,26 +26,45 @@ const RegisterPage = () => {
     confirm_password: true,
   });
 
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = hash.get("access_token");
+    const refresh_token = hash.get("refresh_token");
+
+    if (access_token && refresh_token) {
+      supabase.auth
+        .setSession({ access_token, refresh_token })
+        .then(({ error }) => {
+          if (error) toast.error("Token reset tidak valid");
+        });
+    }
+  }, []);
+
   const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!credential.email || !credential.password) {
+    if (!credential.password) {
       toast.error("Harap Isi Field yang Kosong");
       return;
     }
 
     setIsLoading(true);
-    const email = credential.email;
+
     const password = credential.password;
     const confirm_password = credential.confirm_password;
 
-    const response = await register({ email, password, confirm_password });
+    if (password !== confirm_password) {
+      toast.error("Password atau Konfirmasi Password tidak sama");
+      return;
+    }
+
+    const response = await UpdatePassword(password);
 
     if (!response.status || response.status === null) {
       setIsLoading(false);
-      toast.error(response.pesan || "Gagal untuk Register");
+      toast.error(response.pesan || "Gagal untuk update Password");
       return;
     }
 
@@ -158,4 +175,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage;
+export default UpdatePasswordPage;

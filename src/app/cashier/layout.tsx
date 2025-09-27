@@ -1,6 +1,6 @@
 import AdminLayout from "@/layout/admin-layout";
 
-export default function LayoutAdmin({
+export default function LayoutCashier({
   children,
 }: {
   children: React.ReactNode;

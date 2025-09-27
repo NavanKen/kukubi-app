@@ -83,6 +83,13 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
     if (pathname === "/cashier") redirectUrl = "/cashier/dashboard";
+  } else if (pathname.startsWith("/profile")) {
+    if (role !== "admin" && role !== "cashier") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      url.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(url);
+    }
   }
 
   if (redirectUrl) {

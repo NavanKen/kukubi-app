@@ -75,4 +75,25 @@ export const sidebarAdmin = [
   },
 ];
 
-export const sidebarCashier = [{}];
+export const sidebarCashier = [
+  {
+    label: "Beranda",
+    items: [
+      {
+        title: "Dashboard",
+        url: "/cashier/dashboard",
+        icon: LayoutDashboard,
+      },
+    ],
+  },
+  {
+    label: "Transaksi",
+    items: [
+      {
+        title: "Orders",
+        url: "/cashier/orders",
+        icon: ShoppingCart,
+      },
+    ],
+  },
+];

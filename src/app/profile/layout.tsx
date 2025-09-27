@@ -1,6 +1,6 @@
 import AdminLayout from "@/layout/admin-layout";
 
-export default function LayoutAdmin({
+export default function LayoutProfile({
   children,
 }: {
   children: React.ReactNode;
