@@ -5,10 +5,12 @@ import ProfileComponent from "@/components/admin/profile";
 export default async function ProfilePage({
   params,
 }: {
-  params: { profileId: string };
+  params: Promise<{ profileId: string }>;
 }) {
   const supabase = await createClient();
-  const profileIdFromUrl = params.profileId;
+
+  const resolvedParams = await params;
+  const profileIdFromUrl = resolvedParams.profileId;
 
   const { data: authData } = await supabase.auth.getUser();
 
