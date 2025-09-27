@@ -2,11 +2,11 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileComponent from "@/components/admin/profile";
 
-interface ProfilePageProps {
+export default async function ProfilePage({
+  params,
+}: {
   params: { profileId: string };
-}
-
-export default async function ProfilePage({ params }: ProfilePageProps) {
+}) {
   const supabase = await createClient();
   const profileIdFromUrl = params.profileId;
 
