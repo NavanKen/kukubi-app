@@ -21,6 +21,7 @@ export default function OrderDetail() {
   return (
     <AdminDetailOrder
       orderId={orderId as string}
+      order={order}
       orderItems={orderItems}
       user={user}
     />

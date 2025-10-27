@@ -6,6 +6,7 @@ export interface IOrderItem {
   product_id: number;
   quantity: number;
   price: number;
+  status?: "pending" | "ready";
   products?: IProduk;
   created_at?: string;
   updated_at?: string;

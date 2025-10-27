@@ -3,34 +3,35 @@ import type { ICreateOrderItem, IOrderItem } from "@/types/order_items.type";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 export const subscribeOrdersItems = (
-  orderId: string,
   callback: (payload: RealtimePostgresChangesPayload<IOrderItem>) => void
 ) => {
   const channel = supabase
-    .channel(`order-items-${orderId}`)
+    .channel("order-items-changes")
     .on<IOrderItem>(
       "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "order_items",
-        filter: `order_id=eq.${orderId}`,
-      },
+      { event: "*", schema: "public", table: "order_items" },
       (payload) => {
         callback(payload);
       }
     )
     .subscribe();
 
-  return () => supabase.removeChannel(channel);
+  return () => {
+    supabase.removeChannel(channel);
+  };
 };
 
 export const createOrderItems = async (
   orderItems: ICreateOrderItem[]
 ): Promise<{ status: boolean; pesan?: string; data?: IOrderItem[] }> => {
+  const itemsWithStatus = orderItems.map((item) => ({
+    ...item,
+    status: "pending" as const,
+  }));
+
   const { data, error } = await supabase
     .from("order_items")
-    .insert(orderItems)
+    .insert(itemsWithStatus)
     .select();
 
   if (error) {
@@ -115,5 +116,27 @@ export const deleteOrderItem = async (
   return {
     status: true,
     pesan: "Order item berhasil dihapus",
+  };
+};
+
+export const updateOrderItemStatus = async (
+  id: number,
+  status: "pending" | "ready"
+): Promise<{ status: boolean; pesan?: string }> => {
+  const { error } = await supabase
+    .from("order_items")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) {
+    return {
+      status: false,
+      pesan: error?.message || "Gagal update status",
+    };
+  }
+
+  return {
+    status: true,
+    pesan: "Status berhasil diupdate",
   };
 };

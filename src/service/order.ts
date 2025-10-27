@@ -4,6 +4,11 @@ import { IOrders } from "@/types/orders.types";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { UserInformation } from "@/types/user.types";
 
+export interface ICreateGuestItem {
+  customer_name: string;
+  guest_identifier: string;
+}
+
 export const subscribeOrder = (
   callback: (payload: RealtimePostgresChangesPayload<IOrders>) => void
 ) => {
@@ -12,6 +17,31 @@ export const subscribeOrder = (
     .on<IOrders>(
       "postgres_changes",
       { event: "*", schema: "public", table: "orders" },
+      (payload) => {
+        callback(payload);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+};
+
+export const subscribeOrderById = (
+  orderId: string,
+  callback: (payload: RealtimePostgresChangesPayload<IOrders>) => void
+) => {
+  const channel = supabase
+    .channel(`order-${orderId}`)
+    .on<IOrders>(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "orders",
+        filter: `id=eq.${orderId}`,
+      },
       (payload) => {
         callback(payload);
       }
@@ -47,9 +77,10 @@ export const getOrderPaginate = async ({
   return { status: true, data, count };
 };
 
-export const createOrder = async (
-  customer_name: string
-): Promise<{ status: boolean; pesan?: string }> => {
+export const createGuestOrder = async ({
+  customer_name,
+  guest_identifier,
+}: ICreateGuestItem): Promise<{ status: boolean; pesan?: string }> => {
   //   const user_id = res.data?.auth.id;
   const today = new Date();
   const created_at = today.toISOString().split("T")[0];
@@ -57,9 +88,14 @@ export const createOrder = async (
   const status = "pending";
   const total_amount = 0;
 
-  const { error } = await supabase
-    .from("orders")
-    .insert({ customer_name, order_type, status, created_at, total_amount });
+  const { error } = await supabase.from("orders").insert({
+    customer_name,
+    guest_identifier,
+    order_type,
+    status,
+    created_at,
+    total_amount,
+  });
 
   if (error) {
     return {
@@ -73,6 +109,8 @@ export const createOrder = async (
     pesan: "Data berhasil ditambahkan",
   };
 };
+
+export const createUserOrder = async () => {};
 
 export const getOrderById = async (
   id: string
@@ -151,49 +189,65 @@ export const getOrderById = async (
   };
 };
 
-export const detailOrder = async (
-  payload: IOrders
+export const updateOrderStatus = async (
+  orderId: string,
+  status: "pending" | "processing" | "shipped" | "completed" | "cancelled"
 ): Promise<{ status: boolean; pesan?: string }> => {
-  const {
-    customer_name,
-    order_type,
-    status,
-    total_amount,
-    updated_at,
-    guest_identifier,
-    user_id,
-  } = payload;
+  const { error } = await supabase
+    .from("orders")
+    .update({ status })
+    .eq("id", orderId);
 
-  // const dateString = date
-  //   ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-  //       2,
-  //       "0"
-  //     )}-${String(date.getDate()).padStart(2, "0")}`
-  //   : null;
+  if (error) {
+    return {
+      status: false,
+      pesan: error?.message || "Gagal update status order",
+    };
+  }
 
-  // const { error } = await supabase
-  //   .from("expenses")
-  //   .update({ name, amount, description, date: dateString })
-  //   .eq("id", id)
-  //   .select()
-  //   .single();
-
-  // if (error) {
-  //   return {
-  //     status: false,
-  //     pesan: error?.message || "Terjadi Kesalahan",
-  //   };
-  // }
   return {
     status: true,
-    pesan: "Data Berhasil Di Update",
+    pesan: "Status order berhasil diupdate",
+  };
+};
+
+export const updateOrderTotalAmount = async (
+  orderId: string,
+  totalAmount: number
+): Promise<{ status: boolean; pesan?: string }> => {
+  const { error } = await supabase
+    .from("orders")
+    .update({ total_amount: totalAmount })
+    .eq("id", orderId);
+
+  if (error) {
+    return {
+      status: false,
+      pesan: error?.message || "Gagal update total amount",
+    };
+  }
+
+  return {
+    status: true,
+    pesan: "Total amount berhasil diupdate",
   };
 };
 
 export const deleteOrder = async (
   id: string
 ): Promise<{ status: boolean; pesan?: string }> => {
-  const { error } = await supabase.from("expenses").delete().eq("id", id);
+  const { error } = await supabase.from("orders").delete().eq("id", id);
+  const { error: OrderItemsError } = await supabase
+    .from("order_items")
+    .delete()
+    .eq("order_id", id);
+
+  if (OrderItemsError) {
+    return {
+      status: false,
+      pesan: OrderItemsError?.message || "Terjadi Kesalahan",
+    };
+  }
 
   if (error) {
     return {

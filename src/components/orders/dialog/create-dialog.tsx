@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { ThemeAwareButton } from "@/components/admin/ui/theme-button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { createOrder } from "@/service/order";
+import { createGuestOrder, ICreateGuestItem } from "@/service/order";
 
 const CreateDialog = () => {
   const [open, setOpen] = useState(false);
@@ -41,9 +41,15 @@ const CreateDialog = () => {
 
     setIsLoading(true);
 
-    const customer_name: string = formData.name;
+    const name: string = formData.name;
+    const guest: string = "guest-" + name;
 
-    const res = await createOrder(customer_name);
+    const insertData = {
+      customer_name: name,
+      guest_identifier: guest,
+    };
+
+    const res = await createGuestOrder(insertData as ICreateGuestItem);
 
     if (!res.status) {
       toast.error(res.pesan);

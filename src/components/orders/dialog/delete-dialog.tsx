@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
-import { deletePengeluaran } from "@/service/pengeluaran";
+import { deleteOrder } from "@/service/order";
 
 interface DeleteDialogProps {
   id: string;
@@ -26,7 +26,7 @@ const DeleteDialog = ({ id }: DeleteDialogProps) => {
   const handleDelete = async () => {
     setIsLoading(true);
 
-    const res = await deletePengeluaran(id);
+    const res = await deleteOrder(id);
 
     if (!res.status) {
       toast.error(res?.pesan || "Gagal menghapus data");

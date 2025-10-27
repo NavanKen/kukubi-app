@@ -13,19 +13,101 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { IOrderItem } from "@/types/order_items.type";
 import Image from "next/image";
+import { deleteOrderItem, updateOrderItemStatus } from "@/service/order-items";
+import { updateProductStock } from "@/service/produk";
+import { toast } from "sonner";
+import { useState } from "react";
 
-const OrderTable = ({ orderItems }: { orderItems: IOrderItem[] }) => {
-  const getStatusVariant = (status: string) => {
+const OrderTable = ({
+  orderItems,
+  currentStatus,
+}: {
+  orderItems: IOrderItem[];
+  currentStatus: string;
+}) => {
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{
+    id: number;
+    productId: number;
+    quantity: number;
+    name: string;
+  } | null>(null);
+
+  const getStatusVariant = (status?: string) => {
     switch (status) {
       case "pending":
         return <Badge variant={"secondary"}>Menunggu</Badge>;
-      case "done":
-        return <Badge variant={"default"}>Selesai</Badge>;
+      case "ready":
+        return <Badge variant={"default"}>Siap</Badge>;
+      default:
+        return <Badge variant={"secondary"}>Menunggu</Badge>;
     }
+  };
+
+  const handleUpdateStatus = async (
+    id: number,
+    status: "pending" | "ready"
+  ) => {
+    setUpdatingId(id);
+    const res = await updateOrderItemStatus(id, status);
+
+    if (!res.status) {
+      toast.error(res.pesan || "Gagal update status");
+    } else {
+      toast.success(res.pesan);
+    }
+    setUpdatingId(null);
+  };
+
+  const openDeleteDialog = (
+    id: number,
+    productId: number,
+    quantity: number,
+    name: string
+  ) => {
+    setItemToDelete({ id, productId, quantity, name });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+
+    const { id, productId, quantity } = itemToDelete;
+
+    const res = await deleteOrderItem(id);
+
+    if (!res.status) {
+      toast.error(res.pesan || "Gagal menghapus item");
+      setDeleteDialogOpen(false);
+      return;
+    }
+
+    const stockRes = await updateProductStock(productId, quantity);
+
+    if (!stockRes.status) {
+      console.error("Gagal restore stock:", stockRes.pesan);
+      toast.warning("Item dihapus tapi stock gagal dikembalikan");
+    } else {
+      toast.success("Item dihapus dan stock dikembalikan");
+    }
+
+    setDeleteDialogOpen(false);
+    setItemToDelete(null);
   };
 
   return (
@@ -53,32 +135,91 @@ const OrderTable = ({ orderItems }: { orderItems: IOrderItem[] }) => {
                     height={40}
                     className="rounded-md object-cover"
                   />
-                  <span>{item.products?.name}</span>
+                  <span>
+                    {item.products?.name} x{item.quantity}
+                  </span>
                 </div>
               </TableCell>
               <TableCell className="py-3">{item.products?.price}</TableCell>
               <TableCell className="py-3">
-                {getStatusVariant("pending")}
+                {getStatusVariant(item.status)}
               </TableCell>
               <TableCell className="py-3">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Selesai</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600 ">
-                      Hapus
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {(currentStatus === "pending" ||
+                  currentStatus === "processing") && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        disabled={updatingId === item.id}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {item.status !== "ready" && (
+                        <DropdownMenuItem
+                          onClick={() => handleUpdateStatus(item.id!, "ready")}
+                          disabled={!item.id}
+                        >
+                          Tandai Siap
+                        </DropdownMenuItem>
+                      )}
+                      {item.status === "ready" && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleUpdateStatus(item.id!, "pending")
+                          }
+                          disabled={!item.id}
+                        >
+                          Tandai Menunggu
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={() =>
+                          openDeleteDialog(
+                            item.id!,
+                            item.product_id,
+                            item.quantity,
+                            item.products?.name || "Item"
+                          )
+                        }
+                        disabled={!item.id}
+                      >
+                        Hapus
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Item Order</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus{" "}
+              <span className="font-semibold">{itemToDelete?.name}</span> dari
+              order ini? Stock produk akan dikembalikan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

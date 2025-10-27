@@ -166,7 +166,7 @@ const MenuData = ({
                     </TableCell>
                     <TableCell className="py-3">
                       <div className="flex gap-3">
-                        <Link href={`/admin/orders/edit/${menu.id}`}>
+                        <Link href={`/admin/orders/${menu.id}`}>
                           <EditIcon className="w-5 h-5 cursor-pointer" />
                         </Link>
                         <DeleteDialog id={menu.id!} />

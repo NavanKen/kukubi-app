@@ -153,6 +153,52 @@ export const deleteProduk = async (
   };
 };
 
+export const updateProductStock = async (
+  productId: number,
+  quantityChange: number
+): Promise<{ status: boolean; pesan?: string }> => {
+  // Get current stock
+  const { data: product, error: fetchError } = await supabase
+    .from("products")
+    .select("stock")
+    .eq("id", productId)
+    .single();
+
+  if (fetchError) {
+    return {
+      status: false,
+      pesan: fetchError?.message || "Gagal mengambil data produk",
+    };
+  }
+
+  const newStock = product.stock + quantityChange;
+
+  if (newStock < 0) {
+    return {
+      status: false,
+      pesan: "Stock tidak mencukupi",
+    };
+  }
+
+  // Update stock
+  const { error: updateError } = await supabase
+    .from("products")
+    .update({ stock: newStock })
+    .eq("id", productId);
+
+  if (updateError) {
+    return {
+      status: false,
+      pesan: updateError?.message || "Gagal update stock",
+    };
+  }
+
+  return {
+    status: true,
+    pesan: "Stock berhasil diupdate",
+  };
+};
+
 export const uploadFile = async (file: File, oldImage?: string) => {
   const fileExt = file.name.split(".").pop();
   const fileName = `${Date.now()}.${fileExt}`;

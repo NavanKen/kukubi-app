@@ -4,58 +4,30 @@ interface AddOrderProps {
   orderId: string;
 }
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Cart from "./ui/cart";
 import ProductCards from "./ui/product-cards";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useProduk } from "@/hooks/use-produk";
 import type { IProduk } from "@/types/produk.type";
-import type {
-  ICartItem,
-  ICreateOrderItem,
-  IOrderItem,
-} from "@/types/order_items.type";
-import {
-  createOrderItems,
-  // deleteOrderItem,
-  // updateOrderItemQuantity,
-} from "@/service/order-items";
+import type { ICartItem, ICreateOrderItem } from "@/types/order_items.type";
+import { createOrderItems } from "@/service/order-items";
+import { updateProductStock } from "@/service/produk";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useDetailOrder } from "@/hooks/use-detail-order";
 
 const AddOrder = ({ orderId }: AddOrderProps) => {
-  const { orderItems: initialItems } = useDetailOrder(orderId);
   const [cartItems, setCartItems] = useState<ICartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOrdering, setIsOrdering] = useState(false);
+  const router = useRouter();
 
   const { menuData: products, isLoading: productLoading } = useProduk(
     searchQuery,
     50,
     1
   );
-
-  useEffect(() => {
-    setCartItems((prev) => {
-      const updated = initialItems
-        .filter(
-          (item): item is IOrderItem & { products: IProduk } => !!item.products
-        )
-        .map((item) => ({
-          id: item.id,
-          quantity: item.quantity,
-          product: item.products,
-        }));
-
-      const merged = updated.map((upd) => {
-        const existing = prev.find((p) => p.product.id === upd.product.id);
-        return existing ? { ...upd, quantity: existing.quantity } : upd;
-      });
-
-      return merged;
-    });
-  }, [initialItems]);
 
   const handleAddToCart = (product: IProduk) => {
     if (product.stock === 0) {
@@ -118,10 +90,21 @@ const AddOrder = ({ orderId }: AddOrderProps) => {
 
   const handleOrder = async () => {
     if (cartItems.length === 0) return;
-    console.log("ditekan");
 
     setIsOrdering(true);
     try {
+      for (const item of cartItems) {
+        const product = products.find((p) => p.id === item.product.id);
+        if (!product) {
+          throw new Error(`Produk ${item.product.name} tidak ditemukan`);
+        }
+        if (product.stock < item.quantity) {
+          throw new Error(
+            `Stock ${item.product.name} tidak mencukupi. Tersedia: ${product.stock}`
+          );
+        }
+      }
+
       const orderItemsData: ICreateOrderItem[] = cartItems
         .filter((item) => item.product.id !== undefined)
         .map((item) => ({
@@ -135,7 +118,21 @@ const AddOrder = ({ orderId }: AddOrderProps) => {
 
       if (!res.status) throw new Error(res.pesan);
 
-      toast.success(res.pesan);
+      for (const item of cartItems) {
+        const stockRes = await updateProductStock(
+          Number(item.product.id),
+          -item.quantity
+        );
+
+        if (!stockRes.status) {
+          console.error(
+            `Gagal update stock untuk ${item.product.name}:`,
+            stockRes.pesan
+          );
+        }
+      }
+
+      toast.success("Order berhasil dibuat dan stock diupdate");
       setCartItems([]);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -147,6 +144,7 @@ const AddOrder = ({ orderId }: AddOrderProps) => {
       }
     } finally {
       setIsOrdering(false);
+      router.push(`/admin/orders/${orderId}`);
     }
   };
 
@@ -156,7 +154,6 @@ const AddOrder = ({ orderId }: AddOrderProps) => {
       return;
     }
 
-    // const product = products.find((p) => p.id === productId);
     const product = products.find(
       (p) => p.id !== undefined && Number(p.id) === productId
     );
