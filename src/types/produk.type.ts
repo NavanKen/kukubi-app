@@ -5,6 +5,8 @@ export interface IProduk {
   price: number;
   stock: number;
   image?: string;
+  averageRating?: number;
+  TotalReviews?: number;
 }
 
 export interface ICreateProduk extends IProduk {

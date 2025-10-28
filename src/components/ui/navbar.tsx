@@ -14,11 +14,21 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getProfileUser } from "@/service/auth";
+import { useCart } from "@/hooks/use-cart";
+import Image from "next/image";
+import CartModal from "../member/menu/cart-modal";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState("");
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [userId, setUserId] = useState("");
+  const [userAvatar, setUserAvatar] = useState("");
   const router = useRouter();
+  const { cartData, total: cartTotal, refetch: refetchCart } = useCart(userId);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,6 +39,41 @@ const Navbar = () => {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    const res = await getProfileUser();
+    if (res.status && res.data) {
+      setIsLoggedIn(true);
+      setUserRole(res.data.profile.role ?? "");
+      setUserId(res.data.auth.id);
+      setUserAvatar(res.data.profile.avatar);
+    }
+  };
+
+  const handleProfileClick = () => {
+    if (!isLoggedIn) {
+      router.push("/auth/login");
+      return;
+    }
+
+    if (userRole === "admin") {
+      router.push("/admin");
+    } else {
+      router.push("/member");
+    }
+  };
+
+  const handleCartClick = () => {
+    if (!isLoggedIn) {
+      router.push("/auth/login");
+      return;
+    }
+    setIsCartOpen(true);
+  };
 
   const navItems = [
     {
@@ -50,18 +95,6 @@ const Navbar = () => {
       title: "Kontak",
       href: "/contact",
       icon: MessageCircle,
-    },
-  ];
-
-  const navIcon = [
-    {
-      icon: ShoppingCart,
-      label: "Cart",
-    },
-    {
-      icon: User,
-      label: "Profile",
-      href: "/auth/login",
     },
   ];
 
@@ -135,25 +168,55 @@ const Navbar = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
             >
-              {navIcon.map((item, index) => (
-                <motion.button
-                  className="p-2 hover:bg-gray-100 rounded-lg hover:text-orange-600 transition-all duration-200 ease-in-out relative group"
-                  key={index}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => router.push("/auth/login")}
-                  title={item.label}
-                >
-                  <item.icon size={20} />
-                  <motion.div
-                    className="absolute -inset-1 rounded-lg bg-orange-100 opacity-0 -z-10"
-                    whileHover={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                  />
-                </motion.button>
-              ))}
+              <motion.button
+                className="p-2 hover:bg-gray-100 rounded-lg hover:text-orange-600 transition-all duration-200 ease-in-out relative group"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleCartClick}
+                title="Cart"
+              >
+                <ShoppingCart size={20} />
+                {isLoggedIn && cartData.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartData.length}
+                  </span>
+                )}
+                <motion.div
+                  className="absolute -inset-1 rounded-lg bg-orange-100 opacity-0 -z-10"
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.button>
+
+              <motion.button
+                className="p-2 hover:bg-gray-100 rounded-lg hover:text-orange-600 transition-all duration-200 ease-in-out relative group"
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleProfileClick}
+                title="Profile"
+              >
+                {isLoggedIn && userAvatar ? (
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                    <Image
+                      src={userAvatar}
+                      alt="Avatar"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <User size={20} />
+                )}
+                <motion.div
+                  className="absolute -inset-1 rounded-lg bg-orange-100 opacity-0 -z-10"
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.button>
             </motion.div>
           </div>
         </div>
@@ -242,6 +305,14 @@ const Navbar = () => {
           </>
         )}
       </AnimatePresence>
+      <CartModal
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartData={cartData}
+        cartTotal={cartTotal}
+        userId={userId}
+        refetchCart={refetchCart}
+      />
     </>
   );
 };

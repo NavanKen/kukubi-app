@@ -1,9 +1,7 @@
+import ProfileMember from "@/components/member/profile";
+
 const ProfileMemberPages = () => {
-  return (
-    <>
-      <div>Masih Dalam Tahap Pengembangan</div>
-    </>
-  );
+  return <ProfileMember />;
 };
 
 export default ProfileMemberPages;

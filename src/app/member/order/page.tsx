@@ -1,11 +1,7 @@
-import RecentTransactions from "@/components/member/dashboard/ui/recent-transaction";
+import OrderMember from "@/components/member/order";
 
 const OrderMemberPages = () => {
-  return (
-    <>
-      <RecentTransactions />
-    </>
-  );
+  return <OrderMember />;
 };
 
 export default OrderMemberPages;

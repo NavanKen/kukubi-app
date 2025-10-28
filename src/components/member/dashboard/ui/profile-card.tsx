@@ -1,40 +1,101 @@
+"use client";
+
 import { Area, AreaChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { IUserProfile } from "@/types/auth.type";
+import { IOrders } from "@/types/orders.types";
+import { useEffect, useState } from "react";
 
-const weeklyTransactions = [
-  { day: "Sen", amount: 45000 },
-  { day: "Sel", amount: 0 },
-  { day: "Rab", amount: 75000 },
-  { day: "Kam", amount: 32000 },
-  { day: "Jum", amount: 89000 },
-  { day: "Sab", amount: 156000 },
-  { day: "Min", amount: 67000 },
-];
+interface ProfileCardProps {
+  profile: IUserProfile | null;
+  orders: IOrders[];
+}
 
-const ProfileCard = () => {
+const ProfileCard = ({ profile, orders }: ProfileCardProps) => {
+  const [weeklyTransactions, setWeeklyTransactions] = useState<
+    { day: string; amount: number }[]
+  >([]);
+  const [totalWeek, setTotalWeek] = useState(0);
+  const [avgDaily, setAvgDaily] = useState(0);
+
+  useEffect(() => {
+    if (orders.length > 0) {
+      calculateWeeklyData();
+    }
+  }, [orders]);
+
+  const calculateWeeklyData = () => {
+    const days = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    const today = new Date();
+    const weekData = days.map((day, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (6 - index));
+      return { day, amount: 0, date };
+    });
+
+    // Calculate amounts for each day
+    orders.forEach((order) => {
+      if (order.status === "completed" && order.created_at) {
+        const orderDate = new Date(order.created_at);
+        const dayIndex = weekData.findIndex(
+          (d) =>
+            d.date.toDateString() === orderDate.toDateString()
+        );
+        if (dayIndex !== -1) {
+          weekData[dayIndex].amount += order.total_amount;
+        }
+      }
+    });
+
+    const total = weekData.reduce((sum, d) => sum + d.amount, 0);
+    const avg = total / 7;
+
+    setWeeklyTransactions(weekData.map(({ day, amount }) => ({ day, amount })));
+    setTotalWeek(total);
+    setAvgDaily(avg);
+  };
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
       <div className="p-6 bg-gradient-to-br from-orange-500 to-red-500 relative">
         <div className="flex items-center gap-4 mb-4">
           <div className="relative">
             <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white/25">
-              <span className="font-bold text-xl text-white">AR</span>
+              <span className="font-bold text-xl text-white">
+                {profile?.name
+                  ? profile.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)
+                  : "U"}
+              </span>
             </div>
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-semibold text-white">Ahmad Rizky</h2>
+            <h2 className="text-xl font-semibold text-white">
+              {profile?.name || "User"}
+            </h2>
             <p className="text-sm text-white/80 mt-1">
-              Pecinta dimsum sejati yang suka mencoba berbagai varian
+              {profile?.bio || "Selamat datang di Kukubi"}
             </p>
           </div>
         </div>
 
         <div className="absolute bottom-4 right-6">
-          <p className="text-xs text-white/70">Member sejak Januari 2024</p>
+          <p className="text-xs text-white/70">
+            Member sejak{" "}
+            {profile?.created_at
+              ? new Date(profile.created_at).toLocaleDateString("id-ID", {
+                  month: "long",
+                  year: "numeric",
+                })
+              : ""}
+          </p>
         </div>
       </div>
 
@@ -107,8 +168,8 @@ const ProfileCard = () => {
         </ChartContainer>
 
         <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-          <span>Total minggu ini: Rp 464.000</span>
-          <span>Rata-rata: Rp 66.285/hari</span>
+          <span>Total minggu ini: Rp {totalWeek.toLocaleString("id-ID")}</span>
+          <span>Rata-rata: Rp {Math.round(avgDaily).toLocaleString("id-ID")}/hari</span>
         </div>
       </div>
     </div>
