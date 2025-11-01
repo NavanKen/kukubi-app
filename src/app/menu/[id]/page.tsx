@@ -1,3 +1,5 @@
+"use client";
+
 import ProductDetailPublic from "@/components/menu/product-detail-public";
 import Footer from "@/components/ui/footer";
 import Navbar from "@/components/ui/navbar";
