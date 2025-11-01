@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import supabase from "@/lib/supabase/client";
 import { IOrders } from "@/types/orders.types";
 import { useRouter } from "next/navigation";
@@ -26,9 +26,35 @@ const OrderTable = ({
   const [total, setTotal] = useState(0);
   const router = useRouter();
 
+  const fetchOrders = useCallback(async () => {
+    if (!userId) return;
+
+    setIsLoading(true);
+    const offset = (page - 1) * limit;
+
+    let query = supabase
+      .from("orders")
+      .select("*", { count: "exact" })
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (search) {
+      query = query.or(`id.ilike.%${search}%,status.ilike.%${search}%`);
+    }
+
+    const { data, error, count } = await query;
+
+    if (!error && data) {
+      setOrders(data as IOrders[]);
+      setTotal(count || 0);
+    }
+    setIsLoading(false);
+  }, [userId, search, page, limit]);
+
   useEffect(() => {
     fetchOrders();
-  }, [userId, search, page]);
+  }, [fetchOrders]);
 
   useEffect(() => {
     const channel = supabase
@@ -49,32 +75,32 @@ const OrderTable = ({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchOrders]);
 
-  const fetchOrders = async () => {
-    if (!userId) return;
+  // const fetchOrders = async () => {
+  //   if (!userId) return;
 
-    setIsLoading(true);
-    const offset = (page - 1) * limit;
+  //   setIsLoading(true);
+  //   const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from("orders")
-      .select("*", { count: "exact" })
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+  //   let query = supabase
+  //     .from("orders")
+  //     .select("*", { count: "exact" })
+  //     .eq("user_id", userId)
+  //     .order("created_at", { ascending: false })
+  //     .range(offset, offset + limit - 1);
 
-    if (search) {
-      query = query.or(`id.ilike.%${search}%,status.ilike.%${search}%`);
-    }
+  //   if (search) {
+  //     query = query.or(`id.ilike.%${search}%,status.ilike.%${search}%`);
+  //   }
 
-    const { data, error, count } = await query;
-    if (!error && data) {
-      setOrders(data as IOrders[]);
-      setTotal(count || 0);
-    }
-    setIsLoading(false);
-  };
+  //   const { data, error, count } = await query;
+  //   if (!error && data) {
+  //     setOrders(data as IOrders[]);
+  //     setTotal(count || 0);
+  //   }
+  //   setIsLoading(false);
+  // };
 
   const totalPages = Math.ceil(total / limit);
 

@@ -37,11 +37,22 @@ const CheckoutModal = ({
   const [customerName, setCustomerName] = useState("");
 
   useEffect(() => {
+    const fetchUserName = async () => {
+      const { data } = await supabase
+        .from("users")
+        .select("name")
+        .eq("id", userId)
+        .single();
+
+      if (data) {
+        setCustomerName(data.name);
+      }
+    };
     if (isOpen) {
       fetchPaymentMethods();
       fetchUserName();
     }
-  }, [isOpen]);
+  }, [isOpen, userId]);
 
   const fetchPaymentMethods = async () => {
     const { data } = await supabase.from("payment_methods").select("*");
@@ -50,18 +61,6 @@ const CheckoutModal = ({
       if (data.length > 0) {
         setSelectedPayment(data[0].id);
       }
-    }
-  };
-
-  const fetchUserName = async () => {
-    const { data } = await supabase
-      .from("users")
-      .select("name")
-      .eq("id", userId)
-      .single();
-
-    if (data) {
-      setCustomerName(data.name);
     }
   };
 
@@ -75,7 +74,6 @@ const CheckoutModal = ({
     const toastId = toast.loading("Memproses pesanan...");
 
     try {
-      // Create order
       const { data: orderData, error: orderError } = await supabase
         .from("orders")
         .insert({
@@ -91,7 +89,6 @@ const CheckoutModal = ({
 
       if (orderError) throw orderError;
 
-      // Create order items
       const orderItems = cartData.map((item) => ({
         order_id: orderData.id,
         product_id: item.product_id,
@@ -105,7 +102,6 @@ const CheckoutModal = ({
 
       if (itemsError) throw itemsError;
 
-      // Update product stock
       for (const item of cartData) {
         const newStock = (item.products?.stock || 0) - item.quantity;
         await supabase
@@ -114,7 +110,6 @@ const CheckoutModal = ({
           .eq("id", item.product_id);
       }
 
-      // Clear cart
       await clearCart(userId);
 
       toast.success("Pesanan berhasil dibuat!", { id: toastId });
@@ -134,7 +129,6 @@ const CheckoutModal = ({
   return (
     <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center">
       <div className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">Checkout</h2>
           <button
@@ -145,9 +139,7 @@ const CheckoutModal = ({
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Order Summary */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">
               Ringkasan Pesanan
@@ -177,7 +169,6 @@ const CheckoutModal = ({
             </div>
           </div>
 
-          {/* Customer Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nama Pemesan
@@ -191,7 +182,6 @@ const CheckoutModal = ({
             />
           </div>
 
-          {/* Payment Method */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">
               Metode Pembayaran
@@ -226,7 +216,6 @@ const CheckoutModal = ({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="border-t border-gray-200 p-6">
           <button
             onClick={handleCheckout}

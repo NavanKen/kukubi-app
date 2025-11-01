@@ -36,6 +36,7 @@ export const getReviewsByProductId = async (productId: number) => {
     return {
       status: false,
       pesan: "Terjadi kesalahan",
+      error: error,
       data: null,
     };
   }
@@ -66,6 +67,7 @@ export const createReview = async (review: ICreateReview) => {
     return {
       status: false,
       pesan: "Terjadi kesalahan",
+      error: error,
       data: null,
     };
   }
@@ -101,6 +103,7 @@ export const updateReview = async (
     return {
       status: false,
       pesan: "Terjadi kesalahan",
+      error: error,
       data: null,
     };
   }
@@ -127,6 +130,7 @@ export const deleteReview = async (reviewId: number) => {
   } catch (error) {
     return {
       status: false,
+      error: error,
       pesan: "Terjadi kesalahan",
     };
   }
@@ -183,6 +187,7 @@ export const getAverageRating = async (productId: number) => {
   } catch (error) {
     return {
       status: false,
+      error: error,
       data: {
         average: 0,
         count: 0,

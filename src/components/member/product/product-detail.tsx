@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, ShoppingCart, Star, Minus, Plus, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import supabase from "@/lib/supabase/client";
 import { IProduk } from "@/types/produk.type";
 import { addToCart } from "@/service/cart";
 import { getProfileUser } from "@/service/auth";
@@ -13,6 +12,7 @@ import { motion } from "motion/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReviews } from "@/hooks/use-reviews";
 import { createReview, getAverageRating } from "@/service/review";
+import { getProdukById } from "@/service/produk";
 
 interface ProductDetailProps {
   productId: string;
@@ -45,14 +45,10 @@ const ProductDetail = ({ productId }: ProductDetailProps) => {
 
   const fetchProduct = useCallback(async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .eq("id", productId)
-      .single();
+    const res = await getProdukById(productId);
 
-    if (!error && data) {
-      setProduct(data as IProduk);
+    if (!res.status && res.data) {
+      setProduct(res.data as IProduk);
     }
 
     setIsLoading(false);

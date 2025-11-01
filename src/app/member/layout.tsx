@@ -1,18 +1,9 @@
-import AppBar from "@/components/member/ui/app-bar";
-import BottomNavigation from "@/components/member/ui/bottom-bar";
+import MemberLayout from "@/layout/member-layout";
 
-export default function UserMemberLayout({
+export default function LayoutMember({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      <div className="min-h-screen bg-white p-7">
-        <AppBar />
-        <div className="pt-16">{children}</div>
-        <BottomNavigation />
-      </div>
-    </>
-  );
+  return <MemberLayout>{children}</MemberLayout>;
 }

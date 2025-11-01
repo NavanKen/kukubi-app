@@ -72,6 +72,7 @@ const ProfileMember = () => {
         toast.error(res.pesan || "Gagal memperbarui profile", { id: toastId });
       }
     } catch (error) {
+      console.error(error);
       toast.error("Terjadi kesalahan", { id: toastId });
     } finally {
       setIsSaving(false);
@@ -89,15 +90,12 @@ const ProfileMember = () => {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        {/* Header */}
         <div className="bg-gradient-to-br from-orange-500 to-red-500 p-6">
           <h2 className="text-2xl font-bold text-white">Profil Saya</h2>
           <p className="text-white/80 text-sm mt-1">
             Kelola informasi profil Anda
           </p>
         </div>
-
-        {/* Avatar Section */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex flex-col items-center">
             <div className="relative group">
@@ -135,9 +133,7 @@ const ProfileMember = () => {
           </div>
         </div>
 
-        {/* Form Section */}
         <div className="p-6 space-y-4">
-          {/* Name */}
           <div>
             <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
               <User className="w-4 h-4 mr-2 text-orange-600" />
@@ -146,15 +142,12 @@ const ProfileMember = () => {
             <input
               type="text"
               value={profile.name}
-              onChange={(e) =>
-                setProfile({ ...profile, name: e.target.value })
-              }
+              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
               disabled={!isEditing}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-50 disabled:text-gray-600"
             />
           </div>
 
-          {/* Bio */}
           <div>
             <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
               <Mail className="w-4 h-4 mr-2 text-orange-600" />
@@ -169,7 +162,6 @@ const ProfileMember = () => {
             />
           </div>
 
-          {/* Phone */}
           <div>
             <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
               <Phone className="w-4 h-4 mr-2 text-orange-600" />
@@ -186,7 +178,6 @@ const ProfileMember = () => {
             />
           </div>
 
-          {/* Address */}
           <div>
             <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4 mr-2 text-orange-600" />
@@ -204,7 +195,6 @@ const ProfileMember = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="p-6 bg-gray-50 flex gap-3">
           {!isEditing ? (
             <button

@@ -68,6 +68,33 @@ export const getProduk = async (): Promise<{
   };
 };
 
+export const getProdukById = async (
+  productId: string
+): Promise<{
+  status: boolean;
+  pesan?: string;
+  data?: IProduk;
+}> => {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("id", productId)
+    .single();
+
+  if (error) {
+    return {
+      status: false,
+      pesan: error.message,
+    };
+  }
+
+  return {
+    status: true,
+    pesan: "Berhasil mendapatkan Data Produk",
+    data,
+  };
+};
+
 export const createProduk = async (
   payload: ICreateProduk
 ): Promise<{ status: boolean; pesan?: string }> => {
