@@ -45,6 +45,7 @@ const ProductDetail = ({ productId }: ProductDetailProps) => {
 
   const fetchProduct = useCallback(async () => {
     setIsLoading(true);
+    console.log("id", productId);
     const res = await getProdukById(productId);
 
     if (res.status && res.data) {
