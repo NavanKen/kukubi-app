@@ -47,7 +47,7 @@ const ProductDetail = ({ productId }: ProductDetailProps) => {
     setIsLoading(true);
     const res = await getProdukById(productId);
 
-    if (!res.status && res.data) {
+    if (res.status && res.data) {
       setProduct(res.data as IProduk);
     }
 
