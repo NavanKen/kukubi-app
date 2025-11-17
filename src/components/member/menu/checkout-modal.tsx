@@ -83,6 +83,7 @@ const CheckoutModal = ({
           // payment_method_id: selectedPayment,
           status: "pending",
           total_amount: cartTotal,
+          order_code: crypto.randomUUID().slice(0, 8),
         })
         .select()
         .single();

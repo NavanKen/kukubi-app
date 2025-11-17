@@ -1,6 +1,13 @@
 "use client";
 
-import { ArrowLeft, Package, Clock, Truck, CheckCircle, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  Clock,
+  Truck,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { useDetailOrder } from "@/hooks/use-detail-order";
 import { updateOrderStatus } from "@/service/order";
 import { toast } from "sonner";
@@ -15,11 +22,13 @@ interface OrderDetailProps {
 const OrderDetail = ({ orderId }: OrderDetailProps) => {
   const { orderItems, order, isLoading, refetch } = useDetailOrder(orderId);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
   const router = useRouter();
 
   const currentOrder = order[0];
 
-  const handleCancelOrder = async () => {
+  const handleCancelOrder = () => {
     if (!currentOrder) return;
 
     if (currentOrder.status === "shipped") {
@@ -37,8 +46,10 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
       return;
     }
 
-    if (!confirm("Yakin ingin membatalkan pesanan ini?")) return;
+    setShowCancelModal(true);
+  };
 
+  const confirmCancelOrder = async () => {
     setIsCancelling(true);
     const toastId = toast.loading("Membatalkan pesanan...");
 
@@ -46,6 +57,7 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
 
     if (res.status) {
       toast.success("Pesanan berhasil dibatalkan", { id: toastId });
+      setShowCancelModal(false);
       refetch();
     } else {
       toast.error(res.pesan || "Gagal membatalkan pesanan", { id: toastId });
@@ -90,15 +102,107 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+          <div className="space-y-2">
+            <div className="w-40 h-5 bg-gray-200 rounded animate-pulse" />
+            <div className="w-28 h-4 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-6 bg-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 bg-gray-300 rounded-full animate-pulse" />
+              <div className="space-y-2">
+                <div className="w-48 h-4 bg-gray-300 rounded animate-pulse" />
+                <div className="w-32 h-3 bg-gray-300 rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="w-32 h-5 bg-gray-200 rounded mb-4 animate-pulse" />
+
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex gap-4 p-4 bg-gray-50 rounded-lg animate-pulse"
+                >
+                  <div className="w-20 h-20 bg-gray-300 rounded-lg" />
+                  <div className="flex-1 space-y-3">
+                    <div className="w-40 h-4 bg-gray-300 rounded" />
+                    <div className="w-24 h-4 bg-gray-300 rounded" />
+                  </div>
+                  <div className="w-20 h-5 bg-gray-300 rounded" />
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-gray-200 mt-6 pt-6 flex justify-between items-center">
+              <div className="w-32 h-5 bg-gray-200 rounded animate-pulse" />
+              <div className="w-24 h-6 bg-gray-300 rounded animate-pulse" />
+            </div>
+          </div>
+
+          <div className="border-t border-gray-200 p-6 bg-gray-50">
+            <div className="w-full h-12 bg-gray-300 rounded-lg animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
-      {/* Header */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                  <XCircle className="w-6 h-6 text-red-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Batalkan Pesanan
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Order #{String(orderId)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <p className="text-gray-600 leading-relaxed">
+                Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini
+                tidak dapat dibatalkan.
+              </p>
+            </div>
+
+            <div className="p-6 bg-gray-50 rounded-b-2xl flex gap-3">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                disabled={isCancelling}
+                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Tidak, Kembali
+              </button>
+              <button
+                onClick={confirmCancelOrder}
+                disabled={isCancelling}
+                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-500/30"
+              >
+                {isCancelling ? "Memproses..." : "Ya, Batalkan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => router.back()}
@@ -115,7 +219,6 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        {/* Status */}
         {currentOrder && (
           <div className="bg-gradient-to-br from-orange-50 to-red-50 p-6">
             <div className="flex items-center gap-3">
@@ -141,7 +244,6 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
           </div>
         )}
 
-        {/* Order Items */}
         <div className="p-6">
           <h3 className="font-semibold text-gray-900 mb-4 text-lg">
             Item Pesanan
@@ -177,7 +279,6 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
             ))}
           </div>
 
-          {/* Total */}
           {currentOrder && (
             <div className="border-t border-gray-200 mt-6 pt-6">
               <div className="flex justify-between items-center">
@@ -192,7 +293,6 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
           )}
         </div>
 
-        {/* Footer */}
         {currentOrder &&
           currentOrder.status !== "cancelled" &&
           currentOrder.status !== "completed" &&

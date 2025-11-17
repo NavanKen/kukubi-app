@@ -9,7 +9,8 @@ import {
   X,
   Home,
   LayoutGrid,
-  Info,
+  CircleUser,
+  Wallet,
   MessageCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -18,6 +19,7 @@ import { getProfileUser } from "@/service/auth";
 import { useCart } from "@/hooks/use-cart";
 import Image from "next/image";
 import CartModal from "../member/menu/cart-modal";
+import { title } from "process";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
@@ -87,15 +89,16 @@ const Navbar = () => {
       icon: LayoutGrid,
     },
     {
-      title: "Tentang Kami",
-      href: "/about",
-      icon: Info,
+      title: "Riwayat Transaksi",
+      href: "/transaction",
+      icon: Wallet,
     },
-    {
-      title: "Kontak",
-      href: "/contact",
-      icon: MessageCircle,
-    },
+
+    // {
+    //   title: "Kontak",
+    //   href: "/contact",
+    //   icon: MessageCircle,
+    // },
   ];
 
   const toggleMobileMenu = () => {

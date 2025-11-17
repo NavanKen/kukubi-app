@@ -95,6 +95,7 @@ export const createGuestOrder = async ({
     status,
     created_at,
     total_amount,
+    order_code: crypto.randomUUID().slice(0, 8),
   });
 
   if (error) {

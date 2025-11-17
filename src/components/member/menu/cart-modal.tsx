@@ -122,8 +122,7 @@ const CartModal = ({
                         {item.products?.name}
                       </h3>
                       <p className="text-orange-600 font-bold mt-1">
-                        Rp{" "}
-                        {(item.products?.price || 0).toLocaleString("id-ID")}
+                        Rp {(item.products?.price || 0).toLocaleString("id-ID")}
                       </p>
 
                       <div className="flex items-center gap-3 mt-2">
