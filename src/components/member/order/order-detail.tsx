@@ -213,7 +213,7 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Detail Pesanan</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Order #{String(orderId).slice(0, 8)}
+            #{currentOrder?.order_code}
           </p>
         </div>
       </div>

@@ -9,17 +9,20 @@ import {
   X,
   Home,
   LayoutGrid,
-  CircleUser,
   Wallet,
-  MessageCircle,
+  LogOut,
+  UserCircle,
+  LayoutDashboard,
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { getProfileUser } from "@/service/auth";
+import { useEffect, useState, useRef } from "react";
+import { getProfileUser, logout } from "@/service/auth";
 import { useCart } from "@/hooks/use-cart";
 import Image from "next/image";
 import CartModal from "../member/menu/cart-modal";
-import { title } from "process";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
@@ -29,6 +32,10 @@ const Navbar = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [userId, setUserId] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { cartData, total: cartTotal, refetch: refetchCart } = useCart(userId);
 
@@ -46,14 +53,46 @@ const Navbar = () => {
     checkUser();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const checkUser = async () => {
-    const res = await getProfileUser();
-    if (res.status && res.data) {
-      setIsLoggedIn(true);
-      setUserRole(res.data.profile.role ?? "");
-      setUserId(res.data.auth.id);
-      setUserAvatar(res.data.profile.avatar);
+    setIsLoadingUser(true);
+    try {
+      const res = await getProfileUser();
+      if (res.status && res.data) {
+        setIsLoggedIn(true);
+        setUserRole(res.data.profile.role ?? "");
+        setUserId(res.data.auth.id);
+        setUserAvatar(res.data.profile.avatar);
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    } finally {
+      setIsLoadingUser(false);
     }
+  };
+
+  const handleLogout = () => {
+    // Implementasi logout di sini
+    localStorage.removeItem("token"); // Sesuaikan dengan implementasi auth Anda
+    setIsLoggedIn(false);
+    setUserRole("");
+    setUserId("");
+    setUserAvatar("");
+    setIsDropdownOpen(false);
+    router.push("/auth/login");
   };
 
   const handleProfileClick = () => {
@@ -61,7 +100,7 @@ const Navbar = () => {
       router.push("/auth/login");
       return;
     }
-
+    setIsDropdownOpen(false);
     if (userRole === "admin") {
       router.push("/admin");
     } else {
@@ -93,12 +132,6 @@ const Navbar = () => {
       href: "/transaction",
       icon: Wallet,
     },
-
-    // {
-    //   title: "Kontak",
-    //   href: "/contact",
-    //   icon: MessageCircle,
-    // },
   ];
 
   const toggleMobileMenu = () => {
@@ -193,33 +226,108 @@ const Navbar = () => {
                 />
               </motion.button>
 
-              <motion.button
-                className="p-2 hover:bg-gray-100 rounded-lg hover:text-orange-600 transition-all duration-200 ease-in-out relative group"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleProfileClick}
-                title="Profile"
-              >
-                {isLoggedIn && userAvatar ? (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                    <Image
-                      src={userAvatar}
-                      alt="Avatar"
-                      fill
-                      className="object-cover"
+              {/* Skeleton Loading atau Profile Button */}
+              {isLoadingUser ? (
+                <div className="p-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+                </div>
+              ) : (
+                <div className="relative" ref={dropdownRef}>
+                  <motion.button
+                    className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg hover:text-orange-600 transition-all duration-200 ease-in-out relative group"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    title="Profile"
+                  >
+                    {isLoggedIn && userAvatar ? (
+                      <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                        <Image
+                          src={userAvatar}
+                          alt="Avatar"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <User size={20} />
+                    )}
+                    {isLoggedIn && (
+                      <motion.div
+                        animate={{ rotate: isDropdownOpen ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ChevronDown size={16} />
+                      </motion.div>
+                    )}
+                    <motion.div
+                      className="absolute -inset-1 rounded-lg bg-orange-100 opacity-0 -z-10"
+                      whileHover={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
                     />
-                  </div>
-                ) : (
-                  <User size={20} />
-                )}
-                <motion.div
-                  className="absolute -inset-1 rounded-lg bg-orange-100 opacity-0 -z-10"
-                  whileHover={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                />
-              </motion.button>
+                  </motion.button>
+
+                  {/* Dropdown Menu */}
+                  <AnimatePresence>
+                    {isDropdownOpen && isLoggedIn && (
+                      <motion.div
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="py-1">
+                          <button
+                            onClick={handleProfileClick}
+                            className="w-full flex items-center space-x-3 px-4 py-2.5 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors duration-200"
+                          >
+                            {userRole === "admin" ? (
+                              <>
+                                <LayoutDashboard size={18} />
+                                <span className="text-sm font-medium">
+                                  Dashboard Admin
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <UserCircle size={18} />
+                                <span className="text-sm font-medium">
+                                  Profile
+                                </span>
+                              </>
+                            )}
+                          </button>
+                          <div className="border-t border-gray-100"></div>
+                          <button
+                            onClick={handleLogout}
+                            disabled={isLoggingOut}
+                            className="w-full flex items-center space-x-3 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isLoggingOut ? (
+                              <>
+                                <Loader2 size={18} className="animate-spin" />
+                                <span className="text-sm font-medium">
+                                  Logging out...
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <LogOut size={18} />
+                                <span className="text-sm font-medium">
+                                  Logout
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
             </motion.div>
           </div>
         </div>

@@ -42,7 +42,7 @@ const OrderMember = () => {
       </div>
 
       <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative md:flex-1 md:max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"

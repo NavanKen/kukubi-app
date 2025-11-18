@@ -40,6 +40,7 @@ export async function updateSession(request: NextRequest) {
     if (
       pathname.startsWith("/admin") ||
       pathname.startsWith("/member") ||
+      pathname.startsWith("/transaction") ||
       pathname.startsWith("/cashier")
     ) {
       const url = request.nextUrl.clone();

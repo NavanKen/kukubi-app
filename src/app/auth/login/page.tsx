@@ -52,7 +52,7 @@ const LoginForm = () => {
         router.push("/cashier/dashboard");
         break;
       default:
-        router.push("/member");
+        router.push("/");
         break;
     }
     setIsLoading(false);

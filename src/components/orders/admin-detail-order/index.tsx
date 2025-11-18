@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { ThemeAwareButton } from "@/components/admin/ui/theme-button";
 import CardInformation from "./ui/customer-information";
 import OrderTable from "./ui/order-table";
@@ -27,10 +26,6 @@ const AdminDetailOrder = ({
   const role = useUserRole();
   const currentStatus = order[0]?.status || "pending";
 
-  useEffect(() => {
-    console.log(orderId);
-  }, [orderId]);
-
   const addRoute = async () => {
     if (role === "cashier") {
       router.push(`/cashier/orders/${orderId}/add`);
@@ -45,7 +40,7 @@ const AdminDetailOrder = ({
     <>
       <div>
         <div className="flex md:flex-row flex-col md:items-center gap-3 justify-between mb-5">
-          <h1 className="text-3xl font-bold">Detail Order - {orderId}</h1>
+          <h1 className="text-3xl font-bold">Detail Order</h1>
           <ThemeAwareButton
             onClick={addRoute}
             className="cursor-pointer"

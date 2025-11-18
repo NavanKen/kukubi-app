@@ -136,7 +136,7 @@ const MenuData = ({
                     className="bg-neutral-50 dark:bg-neutral-900"
                   >
                     <TableCell className="py-3">{index + 1}</TableCell>
-                    <TableCell className="py-3">ORDER - {menu.id}</TableCell>
+                    <TableCell className="py-3">{menu.order_code}</TableCell>
                     <TableCell className="py-3">
                       {menu.created_at
                         ? new Date(menu.created_at).toLocaleDateString(

@@ -81,7 +81,7 @@ const CheckoutModal = ({
           customer_name: customerName,
           order_type: "online",
           // payment_method_id: selectedPayment,
-          status: "pending",
+          status: "processing",
           total_amount: cartTotal,
           order_code: crypto.randomUUID().slice(0, 8),
         })

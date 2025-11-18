@@ -66,6 +66,7 @@ export const getOrderPaginate = async ({
     .from("orders")
     .select("*", { count: "exact" })
     .or(`customer_name.ilike.%${search}%`)
+    .order("created_at", { ascending: false, nullsFirst: false })
     .range(offset, offset + limit - 1);
 
   const { data, error, count } = await query;
@@ -82,8 +83,9 @@ export const createGuestOrder = async ({
   guest_identifier,
 }: ICreateGuestItem): Promise<{ status: boolean; pesan?: string }> => {
   //   const user_id = res.data?.auth.id;
-  const today = new Date();
-  const created_at = today.toISOString().split("T")[0];
+  const created_at = new Date()
+    .toLocaleString("sv-SE", { timeZone: "Asia/Jakarta" })
+    .replace(" ", "T");
   const order_type = "offline";
   const status = "pending";
   const total_amount = 0;
@@ -122,7 +124,11 @@ export const getOrderById = async (
   order_items?: IOrderItem[];
   user?: UserInformation;
 }> => {
-  let userInformation: UserInformation = { name: "Unknown", type: "guest" };
+  let userInformation: UserInformation = {
+    name: "Unknown",
+    type: "guest",
+    code: "",
+  };
   const { data, error } = await supabase
     .from("orders")
     .select("*")
@@ -137,7 +143,7 @@ export const getOrderById = async (
 
   const { data: userInfo, error: userError } = await supabase
     .from("orders")
-    .select("users (name), guest_identifier, customer_name")
+    .select("users (name), guest_identifier, customer_name, order_code")
     .eq("id", id)
     .single();
 
@@ -151,11 +157,13 @@ export const getOrderById = async (
   if (userInfo.guest_identifier) {
     userInformation = {
       name: userInfo.customer_name,
+      code: userInfo.order_code,
       type: "guest",
     };
   } else {
     userInformation = {
-      name: userInfo.users?.[0]?.name ?? "Unknown",
+      name: userInfo.customer_name,
+      code: userInfo.order_code,
       type: "registered",
     };
   }

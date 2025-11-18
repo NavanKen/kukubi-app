@@ -22,18 +22,25 @@ interface CardInformationProps {
   orderId: string;
 }
 
-const CardInformation = ({ user, orderItems, order, orderId }: CardInformationProps) => {
+const CardInformation = ({
+  user,
+  orderItems,
+  order,
+  orderId,
+}: CardInformationProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   const currentOrder = order[0];
   const currentStatus = currentOrder?.status || "pending";
-  
+
   const total = orderItems.reduce(
-    (sum, item) => sum + (item.price * item.quantity),
+    (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  const allItemsReady = orderItems.length > 0 && orderItems.every(item => item.status === "ready");
+  const allItemsReady =
+    orderItems.length > 0 &&
+    orderItems.every((item) => item.status === "ready");
 
   const handlePayment = async () => {
     if (orderItems.length === 0) {
@@ -43,13 +50,11 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
 
     setIsProcessing(true);
     try {
-      // Update total amount
       const updateTotalRes = await updateOrderTotalAmount(orderId, total);
       if (!updateTotalRes.status) {
         throw new Error(updateTotalRes.pesan);
       }
 
-      // Update status to processing
       const updateStatusRes = await updateOrderStatus(orderId, "processing");
       if (!updateStatusRes.status) {
         throw new Error(updateStatusRes.pesan);
@@ -57,7 +62,9 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
 
       toast.success("Pembayaran berhasil! Status order: Sedang Diproses");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal memproses pembayaran");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal memproses pembayaran"
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -77,7 +84,9 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
       }
       toast.success("Status order: Sedang Diantar");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal update status");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal update status"
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -92,17 +101,22 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
       }
       toast.success("Order selesai!");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal update status");
+      toast.error(
+        error instanceof Error ? error.message : "Gagal update status"
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
+  const typeLabel =
+    user.type === "guest" ? "Pembelian Di Toko" : "Pembelian Online";
+
   const renderActionButton = () => {
     if (currentStatus === "pending") {
       return (
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           className="w-full"
           onClick={handlePayment}
           disabled={isProcessing || orderItems.length === 0}
@@ -114,21 +128,25 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
 
     if (currentStatus === "processing") {
       return (
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           className="w-full"
           onClick={handleReadyToShip}
           disabled={isProcessing || !allItemsReady}
         >
-          {isProcessing ? "Memproses..." : allItemsReady ? "Siap Diantar" : "Menunggu Item Ready"}
+          {isProcessing
+            ? "Memproses..."
+            : allItemsReady
+            ? "Siap Diantar"
+            : "Menunggu Item Ready"}
         </Button>
       );
     }
 
     if (currentStatus === "shipped") {
       return (
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           className="w-full"
           onClick={handleComplete}
           disabled={isProcessing}
@@ -140,12 +158,7 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
 
     if (currentStatus === "completed") {
       return (
-        <Button 
-          type="button" 
-          className="w-full"
-          disabled
-          variant="secondary"
-        >
+        <Button type="button" className="w-full" disabled variant="secondary">
           Order Selesai
         </Button>
       );
@@ -161,6 +174,18 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-6">
+          <div className="grid gap-2">
+            <Label htmlFor="customer">Kode Order</Label>
+            <Input
+              id="customer"
+              type="text"
+              placeholder="b128xjd@#"
+              value={user.code}
+              required
+              disabled
+              className="py-5"
+            />
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="customer">Nama Pelanggan</Label>
             <Input
@@ -179,7 +204,7 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
               id="customer"
               type="text"
               placeholder="m@example.com"
-              value={"Pembelian di Toko"}
+              value={typeLabel}
               required
               disabled
               className="py-5"
@@ -191,12 +216,21 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
           <CardTitle className="text-xl">Ringkasan Pemesanan</CardTitle>
           <div>
             {orderItems.length === 0 ? (
-              <p className="text-sm text-muted-foreground pt-2">Belum ada pesanan</p>
+              <p className="text-sm text-muted-foreground pt-2">
+                Belum ada pesanan
+              </p>
             ) : (
               orderItems.map((item, index) => (
-                <div key={item.id || index} className="flex items-center justify-between pt-2 text-sm">
-                  <p>{item.products?.name || "Produk"} x{item.quantity}</p>
-                  <p>Rp {((item.price || 0) * item.quantity).toLocaleString()}</p>
+                <div
+                  key={item.id || index}
+                  className="flex items-center justify-between pt-2 text-sm"
+                >
+                  <p>
+                    {item.products?.name || "Produk"} x{item.quantity}
+                  </p>
+                  <p>
+                    Rp {((item.price || 0) * item.quantity).toLocaleString()}
+                  </p>
                 </div>
               ))
             )}
@@ -208,9 +242,7 @@ const CardInformation = ({ user, orderItems, order, orderId }: CardInformationPr
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex-col gap-2">
-        {renderActionButton()}
-      </CardFooter>
+      <CardFooter className="flex-col gap-2">{renderActionButton()}</CardFooter>
     </Card>
   );
 };

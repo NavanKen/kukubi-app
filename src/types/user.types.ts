@@ -12,6 +12,7 @@ export interface IEditUserAdmin {
 
 export type UserInformation = {
   name: string;
+  code: string;
   type: "guest" | "registered";
   // order_type: "" | "";
 };
