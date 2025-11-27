@@ -5,10 +5,15 @@ import CardProduk from "./card";
 import { useProduk } from "@/hooks/use-produk";
 import { useEffect, useState } from "react";
 import { getAverageRating } from "@/service/review";
+import { addToCart } from "@/service/cart";
+import { toast } from "sonner";
+import { getProfileUser } from "@/service/auth";
+import { useCart } from "@/hooks/use-cart";
 
 const MenuComponent = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [userId, setUserId] = useState("");
   const limit = 12;
 
   const [ratings, setRatings] = useState<
@@ -17,6 +22,7 @@ const MenuComponent = () => {
 
   const { menuData, isLoading, total } = useProduk(search, limit, page);
   const totalPages = Math.ceil(total / limit);
+  const { refetch: refetchCart } = useCart(userId);
 
   useEffect(() => {
     const fetchRatings = async () => {
@@ -45,6 +51,43 @@ const MenuComponent = () => {
 
     fetchRatings();
   }, [menuData]);
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  const fetchUser = async () => {
+    const res = await getProfileUser();
+    if (res.status && res.data) {
+      setUserId(res.data.auth.id);
+    }
+  };
+
+  const handleAddToCart = async (productId: number) => {
+    if (!userId) {
+      toast.error("Silakan login terlebih dahulu");
+      return;
+    }
+
+    const toastId = toast.loading("Menambahkan ke keranjang...");
+
+    const res = await addToCart({
+      user_id: userId,
+      product_id: productId,
+      quantity: 1,
+    });
+
+    if (res.status) {
+      toast.success(res.pesan || "Berhasil ditambahkan ke keranjang", {
+        id: toastId,
+      });
+      refetchCart();
+    } else {
+      toast.error(res.pesan || "Gagal menambahkan ke keranjang", {
+        id: toastId,
+      });
+    }
+  };
 
   return (
     <>
@@ -92,6 +135,7 @@ const MenuComponent = () => {
               return (
                 <CardProduk
                   key={product.id}
+                  onAddToCart={handleAddToCart}
                   product={{
                     id: product.id!,
                     name: product.name,

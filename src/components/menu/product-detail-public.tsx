@@ -44,7 +44,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
     refetch,
   } = useReviews(Number(productId));
 
-  // Fetch rating
   const fetchRating = useCallback(async () => {
     const res = await getAverageRating(Number(productId));
     if (res.status && res.data) {
@@ -53,7 +52,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
     }
   }, [productId]);
 
-  // Fetch produk
   const fetchProduct = useCallback(async () => {
     setIsLoading(true);
     const { data, error } = await supabase
@@ -66,7 +64,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
     setIsLoading(false);
   }, [productId]);
 
-  // Fetch user
   const fetchUser = async () => {
     const res = await getProfileUser();
     if (res.status && res.data) {
@@ -80,7 +77,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
     fetchRating();
   }, [fetchProduct, fetchRating, productId]);
 
-  // Tambah ke keranjang
   const handleAddToCart = async () => {
     if (!userId) {
       toast.error("Silakan login terlebih dahulu");
@@ -100,7 +96,7 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
       toast.success(res.pesan || "Berhasil ditambahkan ke keranjang", {
         id: toastId,
       });
-      router.push("/member/menu");
+      router.push("/menu");
     } else {
       toast.error(res.pesan || "Gagal menambahkan ke keranjang", {
         id: toastId,
@@ -108,7 +104,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
     }
   };
 
-  // Submit ulasan
   const handleSubmitReview = async () => {
     if (!userId) {
       toast.error("Silakan login terlebih dahulu");
@@ -143,7 +138,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
     setIsSubmitting(false);
   };
 
-  // Loading skeleton
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-6 pb-24">
@@ -167,7 +161,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
     );
   }
 
-  // Produk tidak ditemukan
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
@@ -184,7 +177,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 pb-24">
-      {/* Header */}
       <motion.div
         className="flex items-center gap-4 mb-6"
         initial={{ opacity: 0, y: -20 }}
@@ -199,7 +191,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
         <h1 className="text-2xl font-bold text-gray-900">Detail Produk</h1>
       </motion.div>
 
-      {/* Info Produk */}
       <motion.div
         className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6"
         initial={{ opacity: 0, y: 20 }}
@@ -220,7 +211,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
               {product.name}
             </h2>
 
-            {/* Rating */}
             <div className="flex items-center gap-2 mb-4">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
@@ -240,7 +230,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
               </span>
             </div>
 
-            {/* Harga */}
             <p className="text-4xl font-bold text-orange-600 mb-2">
               Rp {product.price.toLocaleString("id-ID")}
             </p>
@@ -248,7 +237,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
               Stok: {product.stock} tersedia
             </p>
 
-            {/* Deskripsi */}
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 mb-2">Deskripsi</h3>
               <p className="text-gray-600 leading-relaxed">
@@ -257,7 +245,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
               </p>
             </div>
 
-            {/* Jumlah */}
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center gap-3 bg-gray-100 rounded-lg p-2">
                 <button
@@ -296,7 +283,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
         </div>
       </motion.div>
 
-      {/* Section Ulasan */}
       <motion.div
         className="bg-white rounded-2xl shadow-lg overflow-hidden p-6"
         initial={{ opacity: 0, y: 20 }}
@@ -306,7 +292,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
           Ulasan Produk ({totalReviews})
         </h3>
 
-        {/* Jika belum login */}
         {!userId ? (
           <div className="p-6 bg-gray-50 rounded-xl text-center mb-8">
             <p className="text-gray-600 mb-4">
@@ -361,7 +346,6 @@ const ProductDetailPublic = ({ productId }: ProductDetailProps) => {
           </div>
         )}
 
-        {/* Daftar review */}
         <div className="space-y-4">
           {reviewsLoading ? (
             [...Array(3)].map((_, i) => (

@@ -14,9 +14,10 @@ interface CardProdukProps {
     averageRating: number;
     totalReviews: number;
   };
+  onAddToCart: (productId: number) => void;
 }
 
-const CardProduk = ({ product }: CardProdukProps) => {
+const CardProduk = ({ product, onAddToCart }: CardProdukProps) => {
   const router = useRouter();
 
   return (
@@ -66,7 +67,7 @@ const CardProduk = ({ product }: CardProdukProps) => {
               Rp {product.price.toLocaleString("id-ID")}
             </h2>
             <button
-              onClick={() => router.push("/auth/login")}
+              onClick={() => product.id && onAddToCart(product.id)}
               className="cursor-pointer bg-gradient-to-r from-orange-500 to-red-500 p-3 rounded-full hover:from-orange-600 hover:to-red-600 duration-200 ease-in-out hover:scale-105 transition-all"
             >
               <ShoppingCart className="text-white" />

@@ -88,7 +88,7 @@ const ProductDetail = ({ productId }: ProductDetailProps) => {
       toast.success(res.pesan || "Berhasil ditambahkan ke keranjang", {
         id: toastId,
       });
-      router.push("/member/menu");
+      router.push("/menu");
     } else {
       toast.error(res.pesan || "Gagal menambahkan ke keranjang", {
         id: toastId,

@@ -84,9 +84,16 @@ const Navbar = () => {
     }
   };
 
-  const handleLogout = () => {
-    // Implementasi logout di sini
-    localStorage.removeItem("token"); // Sesuaikan dengan implementasi auth Anda
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+
+    const res = await logout();
+
+    if (!res.status) {
+      toast.error("Gagal Keluar");
+    }
+
+    setIsLoggingOut(false);
     setIsLoggedIn(false);
     setUserRole("");
     setUserId("");
@@ -226,7 +233,6 @@ const Navbar = () => {
                 />
               </motion.button>
 
-              {/* Skeleton Loading atau Profile Button */}
               {isLoadingUser ? (
                 <div className="p-2">
                   <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
