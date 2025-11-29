@@ -23,7 +23,7 @@ const MenuMember = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      fetchUser();
+      fetchUsers();
     };
     loadData();
   }, []);
