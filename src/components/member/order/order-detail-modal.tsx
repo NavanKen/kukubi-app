@@ -7,6 +7,26 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { useState } from "react";
 
+interface MidtransSnapResult {
+  transaction_status?: string;
+}
+
+interface MidtransSnap {
+  pay: (
+    token: string,
+    options: {
+      onSuccess?: (result: MidtransSnapResult) => void;
+      onPending?: (result: MidtransSnapResult) => void;
+      onError?: (result: MidtransSnapResult) => void;
+      onClose?: () => void;
+    }
+  ) => void;
+}
+
+interface WindowWithSnap extends Window {
+  snap?: MidtransSnap;
+}
+
 interface OrderDetailModalProps {
   orderId: string;
   onClose: () => void;
@@ -22,7 +42,8 @@ const OrderDetailModal = ({ orderId, onClose }: OrderDetailModalProps) => {
     if (!currentOrder) return;
     if (typeof window === "undefined") return;
 
-    const snap = (window as any).snap;
+    const win = window as WindowWithSnap;
+    const snap = win.snap;
     if (!snap) {
       toast.error("Layanan pembayaran belum siap, coba beberapa saat lagi");
       return;
@@ -74,7 +95,7 @@ const OrderDetailModal = ({ orderId, onClose }: OrderDetailModalProps) => {
         onPending: () => {
           // tetap pending
         },
-        onError: async (result: any) => {
+        onError: async (result: MidtransSnapResult) => {
           console.error("Midtrans error", result);
           if (
             result?.transaction_status === "expire" ||

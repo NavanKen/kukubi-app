@@ -15,6 +15,26 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+interface MidtransSnapResult {
+  transaction_status?: string;
+}
+
+interface MidtransSnap {
+  pay: (
+    token: string,
+    options: {
+      onSuccess?: (result: MidtransSnapResult) => void;
+      onPending?: (result: MidtransSnapResult) => void;
+      onError?: (result: MidtransSnapResult) => void;
+      onClose?: () => void;
+    }
+  ) => void;
+}
+
+interface WindowWithSnap extends Window {
+  snap?: MidtransSnap;
+}
+
 interface OrderDetailProps {
   orderId: string;
 }
@@ -31,7 +51,8 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
     if (!currentOrder) return;
     if (typeof window === "undefined") return;
 
-    const snap = (window as any).snap;
+    const win = window as WindowWithSnap;
+    const snap = win.snap;
     if (!snap) {
       toast.error("Layanan pembayaran belum siap, coba beberapa saat lagi");
       return;
@@ -83,7 +104,7 @@ const OrderDetail = ({ orderId }: OrderDetailProps) => {
         onPending: () => {
           // tetap pending
         },
-        onError: async (result: any) => {
+        onError: async (result: MidtransSnapResult) => {
           console.error("Midtrans error", result);
           if (
             result?.transaction_status === "expire" ||

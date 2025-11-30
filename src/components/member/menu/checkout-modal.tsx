@@ -8,6 +8,26 @@ import supabase from "@/lib/supabase/client";
 import { clearCart } from "@/service/cart";
 import environment from "@/config/environment";
 
+interface MidtransSnapResult {
+  transaction_status?: string;
+}
+
+interface MidtransSnap {
+  pay: (
+    token: string,
+    options: {
+      onSuccess?: (result: MidtransSnapResult) => void;
+      onPending?: (result: MidtransSnapResult) => void;
+      onError?: (result: MidtransSnapResult) => void;
+      onClose?: () => void;
+    }
+  ) => void;
+}
+
+interface WindowWithSnap extends Window {
+  snap?: MidtransSnap;
+}
+
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -52,7 +72,8 @@ const CheckoutModal = ({
   useEffect(() => {
     if (!isOpen) return;
     if (typeof window === "undefined") return;
-    if ((window as any).snap) return;
+    const win = window as WindowWithSnap;
+    if (win.snap) return;
 
     const script = document.createElement("script");
     const baseUrl =
@@ -141,8 +162,12 @@ const CheckoutModal = ({
       onClose();
       closeCartModal();
 
-      const snap = (typeof window !== "undefined" && (window as any).snap) ||
-        null;
+      let snap: MidtransSnap | null = null;
+
+      if (typeof window !== "undefined") {
+        const win = window as WindowWithSnap;
+        snap = win.snap ?? null;
+      }
 
       if (!midtransData.token || !snap) {
         toast.error("Gagal memulai pembayaran Midtrans", { id: toastId });
@@ -167,7 +192,7 @@ const CheckoutModal = ({
         onPending: () => {
           // tetap pending, tidak perlu update
         },
-        onError: async (result: any) => {
+        onError: async (result: MidtransSnapResult) => {
           console.error("Midtrans error", result);
           if (
             result?.transaction_status === "expire" ||
