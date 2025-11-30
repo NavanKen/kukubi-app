@@ -34,6 +34,8 @@ import {
 } from "@/components/ui/chart";
 import { Package, ShoppingCart, Store, DollarSign } from "lucide-react";
 import supabase from "@/lib/supabase/client";
+import type { IOrders } from "@/types/orders.types";
+import type { IOrderItem } from "@/types/order_items.type";
 
 type TimePeriod = "7" | "30" | "90";
 
@@ -53,6 +55,23 @@ interface KpiData {
   totalOnline: number;
   totalOffline: number;
   totalRevenue: number;
+}
+
+interface DashboardOrder {
+  id: IOrders["id"];
+  order_type: IOrders["order_type"];
+  status: IOrders["status"];
+  total_amount: IOrders["total_amount"];
+  created_at?: IOrders["created_at"];
+}
+
+interface DashboardOrderItem {
+  quantity: IOrderItem["quantity"];
+  product_id: IOrderItem["product_id"];
+  order_id?: IOrderItem["order_id"];
+  products?: {
+    name?: string | null;
+  } | null;
 }
 
 export default function Dashboard() {
@@ -93,7 +112,7 @@ export default function Dashboard() {
         throw new Error(ordersError.message);
       }
 
-      const safeOrders = (orders ?? []) as any[];
+      const safeOrders: DashboardOrder[] = (orders ?? []) as DashboardOrder[];
 
       if (safeOrders.length === 0) {
         setProductData([]);
@@ -111,7 +130,7 @@ export default function Dashboard() {
         .map((order) => Number(order.id))
         .filter((id) => !Number.isNaN(id));
 
-      let items: any[] = [];
+      let items: DashboardOrderItem[] = [];
 
       if (orderIds.length > 0) {
         const {
@@ -135,7 +154,7 @@ export default function Dashboard() {
           throw new Error(orderItemsError.message);
         }
 
-        items = (orderItems ?? []) as any[];
+        items = (orderItems ?? []) as DashboardOrderItem[];
       }
 
       const productMap = new Map<string, number>();

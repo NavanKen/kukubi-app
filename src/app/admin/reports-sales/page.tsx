@@ -32,6 +32,17 @@ interface FinancialPoint {
   pengeluaran: number;
 }
 
+interface FinancialOrder {
+  total_amount: number;
+  status: string;
+  created_at: string | null;
+}
+
+interface FinancialExpense {
+  amount: number;
+  date: string | null;
+}
+
 const chartConfig = {
   pemasukan: {
     label: "Pemasukan",
@@ -100,10 +111,10 @@ export default function FinancialDashboard() {
         };
       }
 
-      const orders = ordersRes.data ?? [];
-      const expenses = expensesRes.data ?? [];
+      const orders: FinancialOrder[] = (ordersRes.data ?? []) as FinancialOrder[];
+      const expenses: FinancialExpense[] = (expensesRes.data ?? []) as FinancialExpense[];
 
-      (orders as any[]).forEach((order) => {
+      orders.forEach((order) => {
         if (!order.created_at) return;
         const date = new Date(order.created_at);
         const key = date.toISOString().split("T")[0];
@@ -114,7 +125,7 @@ export default function FinancialDashboard() {
         bucket.pemasukan += amount;
       });
 
-      (expenses as any[]).forEach((exp) => {
+      expenses.forEach((exp) => {
         if (!exp.date) return;
         const key = exp.date as string;
         const bucket = buckets[key];
