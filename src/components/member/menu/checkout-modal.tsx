@@ -1,11 +1,12 @@
 "use client";
 
-import { X, CreditCard, Wallet } from "lucide-react";
+import { X } from "lucide-react";
 import { ICart } from "@/types/cart.type";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import supabase from "@/lib/supabase/client";
 import { clearCart } from "@/service/cart";
+import environment from "@/config/environment";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -17,11 +18,6 @@ interface CheckoutModalProps {
   closeCartModal: () => void;
 }
 
-interface PaymentMethod {
-  id: number;
-  name: string;
-}
-
 const CheckoutModal = ({
   isOpen,
   onClose,
@@ -31,10 +27,10 @@ const CheckoutModal = ({
   refetchCart,
   closeCartModal,
 }: CheckoutModalProps) => {
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [selectedPayment, setSelectedPayment] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [customerName, setCustomerName] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
     const fetchUserName = async () => {
@@ -49,26 +45,30 @@ const CheckoutModal = ({
       }
     };
     if (isOpen) {
-      fetchPaymentMethods();
       fetchUserName();
     }
   }, [isOpen, userId]);
 
-  const fetchPaymentMethods = async () => {
-    const { data } = await supabase.from("payment_methods").select("*");
-    if (data) {
-      setPaymentMethods(data);
-      if (data.length > 0) {
-        setSelectedPayment(data[0].id);
-      }
-    }
-  };
+  useEffect(() => {
+    if (!isOpen) return;
+    if (typeof window === "undefined") return;
+    if ((window as any).snap) return;
+
+    const script = document.createElement("script");
+    const baseUrl =
+      environment.MIDTRANS_BASE_URL || "https://app.sandbox.midtrans.com";
+    script.src = `${baseUrl}/snap/snap.js`;
+    const clientKey = environment.MIDTRANS_CLIENT_KEY || "";
+    script.setAttribute("data-client-key", clientKey);
+    script.async = true;
+    document.body.appendChild(script);
+  }, [isOpen]);
 
   const handleCheckout = async () => {
-    // if (!selectedPayment) {
-    //   toast.error("Pilih metode pembayaran");
-    //   return;
-    // }
+    if (!address || !phone) {
+      toast.error("Mohon isi alamat dan nomor HP");
+      return;
+    }
 
     setIsProcessing(true);
     const toastId = toast.loading("Memproses pesanan...");
@@ -80,10 +80,11 @@ const CheckoutModal = ({
           user_id: userId,
           customer_name: customerName,
           order_type: "online",
-          // payment_method_id: selectedPayment,
-          status: "processing",
+          status: "pending",
           total_amount: cartTotal,
           order_code: crypto.randomUUID().slice(0, 8),
+          addres: address,
+          phone,
         })
         .select()
         .single();
@@ -111,12 +112,82 @@ const CheckoutModal = ({
           .eq("id", item.product_id);
       }
 
-      await clearCart(userId);
+      const midtransResponse = await fetch(
+        "/api/midtrans/create-transaction",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderId: orderData.id,
+            orderCode: orderData.order_code,
+            amount: cartTotal,
+            customerName,
+            phone,
+            address,
+          }),
+        }
+      );
 
-      toast.success("Pesanan berhasil dibuat!", { id: toastId });
+      if (!midtransResponse.ok) {
+        throw new Error("Gagal membuat transaksi Midtrans");
+      }
+
+      const midtransData: { token?: string } = await midtransResponse.json();
+
+      await clearCart(userId);
       refetchCart();
       onClose();
       closeCartModal();
+
+      const snap = (typeof window !== "undefined" && (window as any).snap) ||
+        null;
+
+      if (!midtransData.token || !snap) {
+        toast.error("Gagal memulai pembayaran Midtrans", { id: toastId });
+        return;
+      }
+
+      toast.success("Pesanan berhasil dibuat, membuka pembayaran...", {
+        id: toastId,
+      });
+
+      snap.pay(midtransData.token, {
+        onSuccess: async () => {
+          try {
+            await supabase
+              .from("orders")
+              .update({ status: "processing" })
+              .eq("id", orderData.id);
+          } catch (e) {
+            console.error("Gagal update status order setelah bayar", e);
+          }
+        },
+        onPending: () => {
+          // tetap pending, tidak perlu update
+        },
+        onError: async (result: any) => {
+          console.error("Midtrans error", result);
+          if (
+            result?.transaction_status === "expire" ||
+            result?.transaction_status === "cancel"
+          ) {
+            try {
+              await supabase
+                .from("orders")
+                .update({ status: "cancelled" })
+                .eq("id", orderData.id);
+            } catch (e) {
+              console.error("Gagal update status order ke cancelled", e);
+            }
+          }
+          toast.error("Pembayaran gagal atau dibatalkan");
+        },
+        onClose: () => {
+          // user menutup popup tanpa membayar, biarkan status tetap pending
+        },
+      });
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error("Gagal memproses pesanan", { id: toastId });
@@ -184,43 +255,38 @@ const CheckoutModal = ({
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">
-              Metode Pembayaran
-            </h3>
-            <div className="space-y-2">
-              {paymentMethods.map((method) => (
-                <label
-                  key={method.id}
-                  className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    selectedPayment === method.id
-                      ? "border-orange-500 bg-orange-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    value={method.id}
-                    checked={selectedPayment === method.id}
-                    onChange={() => setSelectedPayment(method.id)}
-                    className="w-4 h-4 text-orange-600"
-                  />
-                  {method.name.toLowerCase().includes("cash") ? (
-                    <Wallet className="w-5 h-5 text-orange-600" />
-                  ) : (
-                    <CreditCard className="w-5 h-5 text-orange-600" />
-                  )}
-                  <span className="font-medium">{method.name}</span>
-                </label>
-              ))}
-            </div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Alamat Pengiriman
+            </label>
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              placeholder="Masukkan alamat lengkap"
+              rows={3}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nomor HP yang dapat dihubungi
+            </label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              placeholder="Contoh: 081234567890"
+            />
           </div>
         </div>
 
         <div className="border-t border-gray-200 p-6">
           <button
             onClick={handleCheckout}
-            disabled={isProcessing || !customerName}
+            disabled={
+              isProcessing || !customerName || !address || !phone
+            }
             className="w-full py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? "Memproses..." : "Konfirmasi Pesanan"}

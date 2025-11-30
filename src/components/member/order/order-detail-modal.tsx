@@ -14,43 +14,91 @@ interface OrderDetailModalProps {
 
 const OrderDetailModal = ({ orderId, onClose }: OrderDetailModalProps) => {
   const { orderItems, order, isLoading, refetch } = useDetailOrder(orderId);
-  const [isCancelling, setIsCancelling] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
 
   const currentOrder = order[0];
 
-  const handleCancelOrder = async () => {
+  const handlePayOrder = async () => {
     if (!currentOrder) return;
+    if (typeof window === "undefined") return;
 
-    if (currentOrder.status === "shipped") {
-      toast.error("Pesanan yang sudah dikirim tidak dapat dibatalkan");
+    const snap = (window as any).snap;
+    if (!snap) {
+      toast.error("Layanan pembayaran belum siap, coba beberapa saat lagi");
       return;
     }
 
-    if (currentOrder.status === "completed") {
-      toast.error("Pesanan yang sudah selesai tidak dapat dibatalkan");
-      return;
+    setIsPaying(true);
+    const toastId = toast.loading("Menghubungkan ke pembayaran...");
+
+    try {
+      const response = await fetch("/api/midtrans/create-transaction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderId: Number(currentOrder.id),
+          orderCode: currentOrder.order_code,
+          amount: currentOrder.total_amount,
+          customerName: currentOrder.customer_name,
+          phone: currentOrder.phone ?? undefined,
+          address: currentOrder.addres ?? undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Gagal membuat transaksi Midtrans");
+      }
+
+      const midtransData: { token?: string } = await response.json();
+
+      if (!midtransData.token) {
+        throw new Error("Token pembayaran tidak tersedia");
+      }
+
+      toast.dismiss(toastId);
+
+      snap.pay(midtransData.token, {
+        onSuccess: async () => {
+          try {
+            const res = await updateOrderStatus(orderId, "processing");
+            if (!res.status) {
+              console.error("Gagal update status order", res.pesan);
+            }
+            refetch();
+          } catch (e) {
+            console.error("Gagal update status order setelah bayar", e);
+          }
+        },
+        onPending: () => {
+          // tetap pending
+        },
+        onError: async (result: any) => {
+          console.error("Midtrans error", result);
+          if (
+            result?.transaction_status === "expire" ||
+            result?.transaction_status === "cancel"
+          ) {
+            try {
+              await updateOrderStatus(orderId, "cancelled");
+              refetch();
+            } catch (e) {
+              console.error("Gagal update status order ke cancelled", e);
+            }
+          }
+          toast.error("Pembayaran gagal atau dibatalkan");
+        },
+        onClose: () => {
+          // user menutup popup tanpa membayar
+        },
+      });
+    } catch (error) {
+      console.error("Gagal memulai pembayaran", error);
+      toast.error("Gagal memulai pembayaran", { id: toastId });
+    } finally {
+      setIsPaying(false);
     }
-
-    if (currentOrder.status === "cancelled") {
-      toast.error("Pesanan sudah dibatalkan");
-      return;
-    }
-
-    if (!confirm("Yakin ingin membatalkan pesanan ini?")) return;
-
-    setIsCancelling(true);
-    const toastId = toast.loading("Membatalkan pesanan...");
-
-    const res = await updateOrderStatus(orderId, "cancelled");
-
-    if (res.status) {
-      toast.success("Pesanan berhasil dibatalkan", { id: toastId });
-      refetch();
-    } else {
-      toast.error(res.pesan || "Gagal membatalkan pesanan", { id: toastId });
-    }
-
-    setIsCancelling(false);
   };
 
   const getStatusIcon = (status: string) => {
@@ -191,20 +239,17 @@ const OrderDetailModal = ({ orderId, onClose }: OrderDetailModalProps) => {
         </div>
 
         {/* Footer */}
-        {currentOrder &&
-          currentOrder.status !== "cancelled" &&
-          currentOrder.status !== "completed" &&
-          currentOrder.status !== "shipped" && (
-            <div className="border-t border-gray-200 p-6">
-              <button
-                onClick={handleCancelOrder}
-                disabled={isCancelling}
-                className="w-full py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isCancelling ? "Membatalkan..." : "Batalkan Pesanan"}
-              </button>
-            </div>
-          )}
+        {currentOrder && currentOrder.status === "pending" && (
+          <div className="border-t border-gray-200 p-6">
+            <button
+              onClick={handlePayOrder}
+              disabled={isPaying}
+              className="w-full py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPaying ? "Menghubungkan..." : "Bayar Sekarang"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

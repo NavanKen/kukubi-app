@@ -102,6 +102,7 @@ const Navbar = () => {
     router.push("/auth/login");
   };
 
+
   const handleProfileClick = () => {
     if (!isLoggedIn) {
       router.push("/auth/login");
@@ -258,7 +259,11 @@ const Navbar = () => {
                         />
                       </div>
                     ) : (
-                      <User size={20} />
+                      <>
+                        <div onClick={() => router.push("/auth/login")}>
+                          <User size={20} />
+                        </div>
+                      </>
                     )}
                     {isLoggedIn && (
                       <motion.div
