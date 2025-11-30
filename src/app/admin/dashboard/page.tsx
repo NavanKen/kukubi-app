@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -33,51 +33,219 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Package, ShoppingCart, Store, DollarSign } from "lucide-react";
+import supabase from "@/lib/supabase/client";
 
-// Dummy data for different time periods
-const generateData = (period: string) => {
-  const baseProductData = [
-    { name: "Dimsum Ayam", value: 150 },
-    { name: "Dimsum Udang", value: 120 },
-    { name: "Dimsum Kepiting", value: 90 },
-    { name: "Dimsum Ikan", value: 75 },
-    { name: "Dimsum Sayur", value: 60 },
-  ];
+type TimePeriod = "7" | "30" | "90";
 
-  const baseOrderData = [
-    { name: "Senin", online: 45, offline: 30 },
-    { name: "Selasa", online: 52, offline: 28 },
-    { name: "Rabu", online: 48, offline: 35 },
-    { name: "Kamis", online: 61, offline: 42 },
-    { name: "Jumat", online: 55, offline: 38 },
-    { name: "Sabtu", online: 67, offline: 45 },
-    { name: "Minggu", online: 58, offline: 40 },
-  ];
+interface ProductDataItem {
+  name: string;
+  value: number;
+}
 
-  const multiplier = period === "7" ? 1 : period === "30" ? 4.2 : 12.5;
+interface OrderChartItem {
+  name: string;
+  online: number;
+  offline: number;
+}
 
-  return {
-    productData: baseProductData.map((item) => ({
-      ...item,
-      value: Math.round(item.value * multiplier),
-    })),
-    orderData: baseOrderData.map((item) => ({
-      ...item,
-      online: Math.round(item.online * multiplier),
-      offline: Math.round(item.offline * multiplier),
-    })),
-    kpiData: {
-      totalProducts: Math.round(495 * multiplier),
-      totalOnline: Math.round(386 * multiplier),
-      totalOffline: Math.round(258 * multiplier),
-      totalRevenue: Math.round(15750000 * multiplier),
-    },
-  };
-};
+interface KpiData {
+  totalProducts: number;
+  totalOnline: number;
+  totalOffline: number;
+  totalRevenue: number;
+}
 
 export default function Dashboard() {
-  const [timePeriod, setTimePeriod] = useState("7");
-  const data = generateData(timePeriod);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("7");
+  const [productData, setProductData] = useState<ProductDataItem[]>([]);
+  const [orderData, setOrderData] = useState<OrderChartItem[]>([]);
+  const [kpiData, setKpiData] = useState<KpiData>({
+    totalProducts: 0,
+    totalOnline: 0,
+    totalOffline: 0,
+    totalRevenue: 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDashboardData = useCallback(async (period: TimePeriod) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const days = period === "7" ? 7 : period === "30" ? 30 : 90;
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - (days - 1));
+
+      const startISO = startDate.toISOString();
+
+      const {
+        data: orders,
+        error: ordersError,
+      } = await supabase
+        .from("orders")
+        .select("id, order_type, status, total_amount, created_at")
+        .eq("status", "completed")
+        .gte("created_at", startISO);
+
+      if (ordersError) {
+        throw new Error(ordersError.message);
+      }
+
+      const safeOrders = (orders ?? []) as any[];
+
+      if (safeOrders.length === 0) {
+        setProductData([]);
+        setOrderData([]);
+        setKpiData({
+          totalProducts: 0,
+          totalOnline: 0,
+          totalOffline: 0,
+          totalRevenue: 0,
+        });
+        return;
+      }
+
+      const orderIds = safeOrders
+        .map((order) => Number(order.id))
+        .filter((id) => !Number.isNaN(id));
+
+      let items: any[] = [];
+
+      if (orderIds.length > 0) {
+        const {
+          data: orderItems,
+          error: orderItemsError,
+        } = await supabase
+          .from("order_items")
+          .select(
+            `
+            quantity,
+            product_id,
+            order_id,
+            products (
+              name
+            )
+          `
+          )
+          .in("order_id", orderIds);
+
+        if (orderItemsError) {
+          throw new Error(orderItemsError.message);
+        }
+
+        items = (orderItems ?? []) as any[];
+      }
+
+      const productMap = new Map<string, number>();
+      items.forEach((item) => {
+        const name = item.products?.name || "Produk";
+        const quantity = typeof item.quantity === "number" ? item.quantity : 0;
+        productMap.set(name, (productMap.get(name) || 0) + quantity);
+      });
+
+      const productDataResult: ProductDataItem[] = Array.from(
+        productMap.entries()
+      )
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5);
+
+      type OrderBucket = {
+        date: Date;
+        online: number;
+        offline: number;
+      };
+
+      const orderMap = new Map<string, OrderBucket>();
+
+      safeOrders.forEach((order) => {
+        if (!order.created_at) return;
+
+        const date = new Date(order.created_at);
+        const key = date.toISOString().split("T")[0];
+
+        const bucket =
+          orderMap.get(key) ||
+          {
+            date,
+            online: 0,
+            offline: 0,
+          };
+
+        if (order.order_type === "online") {
+          bucket.online += 1;
+        } else if (order.order_type === "offline") {
+          bucket.offline += 1;
+        }
+
+        orderMap.set(key, bucket);
+      });
+
+      const orderDataResult: OrderChartItem[] = Array.from(orderMap.values())
+        .sort((a, b) => a.date.getTime() - b.date.getTime())
+        .map((item) => ({
+          name: item.date.toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "2-digit",
+          }),
+          online: item.online,
+          offline: item.offline,
+        }));
+
+      let totalProducts = 0;
+      items.forEach((item) => {
+        if (typeof item.quantity === "number") {
+          totalProducts += item.quantity;
+        }
+      });
+
+      let totalOnline = 0;
+      let totalOffline = 0;
+      let totalRevenue = 0;
+
+      safeOrders.forEach((order) => {
+        if (order.order_type === "online") {
+          totalOnline += 1;
+        } else if (order.order_type === "offline") {
+          totalOffline += 1;
+        }
+
+        if (typeof order.total_amount === "number") {
+          totalRevenue += order.total_amount;
+        }
+      });
+
+      setProductData(productDataResult);
+      setOrderData(orderDataResult);
+      setKpiData({
+        totalProducts,
+        totalOnline,
+        totalOffline,
+        totalRevenue,
+      });
+    } catch (err) {
+      console.error(err);
+      setError(
+        err instanceof Error ? err.message : "Gagal memuat data dashboard"
+      );
+      setProductData([]);
+      setOrderData([]);
+      setKpiData({
+        totalProducts: 0,
+        totalOnline: 0,
+        totalOffline: 0,
+        totalRevenue: 0,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData(timePeriod);
+  }, [fetchDashboardData, timePeriod]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -93,7 +261,10 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <Select value={timePeriod} onValueChange={setTimePeriod}>
+          <Select
+            value={timePeriod}
+            onValueChange={(val) => setTimePeriod(val as TimePeriod)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Pilih periode" />
             </SelectTrigger>
@@ -104,6 +275,12 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
         </div>
+
+        {isLoading && !error && (
+          <p className="text-sm text-muted-foreground">Memuat data...</p>
+        )}
+
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         {/* Charts Section */}
         <Tabs defaultValue="products" className="space-y-4">
@@ -138,7 +315,7 @@ export default function Dashboard() {
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={data.productData}
+                      data={productData}
                       margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
@@ -187,7 +364,7 @@ export default function Dashboard() {
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={data.orderData}
+                      data={orderData}
                       margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                     >
                       <defs>
@@ -268,7 +445,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {data.kpiData.totalProducts.toLocaleString("id-ID")}
+                {kpiData.totalProducts.toLocaleString("id-ID")}
               </div>
               <p className="text-xs text-muted-foreground">
                 Dalam{" "}
@@ -291,7 +468,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {data.kpiData.totalOnline.toLocaleString("id-ID")}
+                {kpiData.totalOnline.toLocaleString("id-ID")}
               </div>
               <p className="text-xs text-muted-foreground">
                 Dalam{" "}
@@ -314,7 +491,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {data.kpiData.totalOffline.toLocaleString("id-ID")}
+                {kpiData.totalOffline.toLocaleString("id-ID")}
               </div>
               <p className="text-xs text-muted-foreground">
                 Dalam{" "}
@@ -337,7 +514,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {formatCurrency(data.kpiData.totalRevenue)}
+                {formatCurrency(kpiData.totalRevenue)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Dalam{" "}

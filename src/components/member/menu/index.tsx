@@ -22,10 +22,7 @@ const MenuMember = () => {
   const { cartData, total: cartTotal, refetch: refetchCart } = useCart(userId);
 
   useEffect(() => {
-    const loadsData = async () => {
       fetchUser();
-    };
-    loadsData();
   }, []);
 
   const fetchUser = async () => {

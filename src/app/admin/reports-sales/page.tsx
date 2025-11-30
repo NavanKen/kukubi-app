@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -22,30 +22,15 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Card } from "@/components/ui/card";
+import supabase from "@/lib/supabase/client";
 
-// Data dummy untuk berbagai periode
-const data7Days = [
-  { date: "Sen", pemasukan: 2400, pengeluaran: 1800 },
-  { date: "Sel", pemasukan: 1398, pengeluaran: 2200 },
-  { date: "Rab", pemasukan: 9800, pengeluaran: 1500 },
-  { date: "Kam", pemasukan: 3908, pengeluaran: 2800 },
-  { date: "Jum", pemasukan: 4800, pengeluaran: 1900 },
-  { date: "Sab", pemasukan: 3800, pengeluaran: 2400 },
-  { date: "Min", pemasukan: 4300, pengeluaran: 2100 },
-];
+type TimeFilter = "7days" | "30days" | "3months";
 
-const data30Days = [
-  { date: "Minggu 1", pemasukan: 24000, pengeluaran: 18000 },
-  { date: "Minggu 2", pemasukan: 32000, pengeluaran: 22000 },
-  { date: "Minggu 3", pemasukan: 28000, pengeluaran: 19000 },
-  { date: "Minggu 4", pemasukan: 35000, pengeluaran: 25000 },
-];
-
-const data3Months = [
-  { date: "Bulan 1", pemasukan: 120000, pengeluaran: 85000 },
-  { date: "Bulan 2", pemasukan: 135000, pengeluaran: 92000 },
-  { date: "Bulan 3", pemasukan: 148000, pengeluaran: 98000 },
-];
+interface FinancialPoint {
+  date: string;
+  pemasukan: number;
+  pengeluaran: number;
+}
 
 const chartConfig = {
   pemasukan: {
@@ -59,20 +44,102 @@ const chartConfig = {
 };
 
 export default function FinancialDashboard() {
-  const [timeFilter, setTimeFilter] = useState("7days");
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>("7days");
+  const [chartData, setChartData] = useState<FinancialPoint[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const getDataByFilter = () => {
-    switch (timeFilter) {
-      case "7days":
-        return data7Days;
-      case "30days":
-        return data30Days;
-      case "3months":
-        return data3Months;
-      default:
-        return data7Days;
+  const fetchFinancialData = useCallback(async (filter: TimeFilter) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const days = filter === "7days" ? 7 : filter === "30days" ? 30 : 90;
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - (days - 1));
+
+      const startISO = startDate.toISOString();
+      const startDateStr = startISO.split("T")[0];
+
+      const [ordersRes, expensesRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("total_amount, status, created_at")
+          .eq("status", "completed")
+          .gte("created_at", startISO),
+        supabase
+          .from("expenses")
+          .select("amount, date")
+          .gte("date", startDateStr),
+      ]);
+
+      if (ordersRes.error) {
+        throw new Error(ordersRes.error.message);
+      }
+
+      if (expensesRes.error) {
+        throw new Error(expensesRes.error.message);
+      }
+
+      const buckets: Record<string, FinancialPoint> = {};
+
+      for (let i = 0; i < days; i++) {
+        const current = new Date(startDate);
+        current.setDate(startDate.getDate() + i);
+        const key = current.toISOString().split("T")[0];
+        const label = current.toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "2-digit",
+        });
+
+        buckets[key] = {
+          date: label,
+          pemasukan: 0,
+          pengeluaran: 0,
+        };
+      }
+
+      const orders = ordersRes.data ?? [];
+      const expenses = expensesRes.data ?? [];
+
+      (orders as any[]).forEach((order) => {
+        if (!order.created_at) return;
+        const date = new Date(order.created_at);
+        const key = date.toISOString().split("T")[0];
+        const bucket = buckets[key];
+        if (!bucket) return;
+
+        const amount = Number(order.total_amount) || 0;
+        bucket.pemasukan += amount;
+      });
+
+      (expenses as any[]).forEach((exp) => {
+        if (!exp.date) return;
+        const key = exp.date as string;
+        const bucket = buckets[key];
+        if (!bucket) return;
+
+        const amount = Number(exp.amount) || 0;
+        bucket.pengeluaran += amount;
+      });
+
+      const result = Object.values(buckets);
+      setChartData(result);
+    } catch (err) {
+      console.error(err);
+      setError(
+        err instanceof Error ? err.message : "Gagal memuat laporan keuangan"
+      );
+      setChartData([]);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchFinancialData(timeFilter);
+  }, [fetchFinancialData, timeFilter]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -87,10 +154,11 @@ export default function FinancialDashboard() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header dan Filter */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-3xl font-bold text-foreground">
-            Laporan Keuangan
-          </h1>
-          <Select value={timeFilter} onValueChange={setTimeFilter}>
+          <h1 className="text-3xl font-bold text-foreground">Laporan Keuangan</h1>
+          <Select
+            value={timeFilter}
+            onValueChange={(val) => setTimeFilter(val as TimeFilter)}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Pilih periode" />
             </SelectTrigger>
@@ -101,6 +169,14 @@ export default function FinancialDashboard() {
             </SelectContent>
           </Select>
         </div>
+
+        {isLoading && !error && (
+          <p className="text-sm text-muted-foreground">Memuat data...</p>
+        )}
+
+        {error && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
 
         {/* Chart Container */}
         <Card>
@@ -119,7 +195,7 @@ export default function FinancialDashboard() {
             <ChartContainer config={chartConfig} className="h-[500px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={getDataByFilter()}
+                  data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid
