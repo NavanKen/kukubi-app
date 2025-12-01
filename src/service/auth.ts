@@ -1,12 +1,12 @@
 import { ILogin, IRegister, IUserResponse } from "@/types/auth.type";
-import { api } from "@/config/api";
+import { ApiAuthEndpoint } from "@/config/endpoint";
+import { AuthApi } from "@/config/api";
 import axios from "axios";
 import { supabaseService } from "@/lib/supabase/admin";
-import { ApiEndpoint } from "@/config/endpoint";
 
 export const login = async (payload: ILogin) => {
   try {
-    const response = await api.post(ApiEndpoint.Login, payload);
+    const response = await AuthApi.post(ApiAuthEndpoint.Login, payload);
     return response.data;
   } catch (error) {
     console.error("Login service error:", error);
@@ -24,7 +24,7 @@ export const login = async (payload: ILogin) => {
 
 export const register = async (payload: IRegister) => {
   try {
-    const response = await api.post(ApiEndpoint.Register, payload);
+    const response = await AuthApi.post(ApiAuthEndpoint.Register, payload);
     return response.data;
   } catch (error) {
     console.error("Register service error:", error);
@@ -42,7 +42,7 @@ export const register = async (payload: IRegister) => {
 
 export const getProfileUser = async (): Promise<IUserResponse> => {
   try {
-    const response = await api.get(ApiEndpoint.Profile);
+    const response = await AuthApi.get(ApiAuthEndpoint.Profile);
     return response.data;
   } catch (error) {
     console.error("Get profile service error:", error);
@@ -60,7 +60,7 @@ export const getProfileUser = async (): Promise<IUserResponse> => {
 
 export const logout = async () => {
   try {
-    const response = await api.post(ApiEndpoint.Logout);
+    const response = await AuthApi.post(ApiAuthEndpoint.Logout);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
@@ -86,7 +86,7 @@ export const ForgotPassword = async (email: string) => {
     };
   }
   try {
-    const response = await api.post(ApiEndpoint.Forgot_Password, user);
+    const response = await AuthApi.post(ApiAuthEndpoint.Forgot_Password, user);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
@@ -97,7 +97,10 @@ export const ForgotPassword = async (email: string) => {
 
 export const UpdatePassword = async (password: string) => {
   try {
-    const response = await api.post(ApiEndpoint.Update_Password, password);
+    const response = await AuthApi.post(
+      ApiAuthEndpoint.Update_Password,
+      password
+    );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

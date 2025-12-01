@@ -133,23 +133,20 @@ const CheckoutModal = ({
           .eq("id", item.product_id);
       }
 
-      const midtransResponse = await fetch(
-        "/api/midtrans/create-transaction",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            orderId: orderData.id,
-            orderCode: orderData.order_code,
-            amount: cartTotal,
-            customerName,
-            phone,
-            address,
-          }),
-        }
-      );
+      const midtransResponse = await fetch("/api/midtrans/create-transaction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderId: orderData.id,
+          orderCode: orderData.order_code,
+          amount: cartTotal,
+          customerName,
+          phone,
+          address,
+        }),
+      });
 
       if (!midtransResponse.ok) {
         throw new Error("Gagal membuat transaksi Midtrans");
@@ -309,9 +306,7 @@ const CheckoutModal = ({
         <div className="border-t border-gray-200 p-6">
           <button
             onClick={handleCheckout}
-            disabled={
-              isProcessing || !customerName || !address || !phone
-            }
+            disabled={isProcessing || !customerName || !address || !phone}
             className="w-full py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? "Memproses..." : "Konfirmasi Pesanan"}
