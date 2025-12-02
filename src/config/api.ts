@@ -10,8 +10,5 @@ export const AuthApi = axios.create({
 
 export const MidtransApi = axios.create({
   baseURL: "/api/midtrans",
-  headers: {
-    "Content-Type": "application/json",
-  },
   withCredentials: true,
 });
